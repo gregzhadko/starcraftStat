@@ -1,9 +1,10 @@
-using System.Reflection;
-using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.EntityFrameworkCore;
+using Starcraft.Stat.DataBase;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddDbContext<StarcraftDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("StarcraftDbContext")));
 
 
 // Add services to the container.
