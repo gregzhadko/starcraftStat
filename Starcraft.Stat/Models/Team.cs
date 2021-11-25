@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-
-namespace Starcraft.Stat.Database;
+﻿namespace Starcraft.Stat.Models;
 
 public class Team
 {

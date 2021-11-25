@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Starcraft.Stat.Database;
+namespace Starcraft.Stat.Models;
 
 public class Race
 {
