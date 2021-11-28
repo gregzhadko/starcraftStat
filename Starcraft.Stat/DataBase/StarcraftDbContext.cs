@@ -10,8 +10,12 @@ public class StarcraftDbContext : DbContext
     {
     }
 
-    public DbSet<Race> Race { get; set; } = null!;
-
+    public DbSet<Race> Races { get; set; } = null!;
+    
+    public DbSet<Player> Players { get; set; } = null!;
+    public DbSet<Team> Teams { get; set; } = null!;
+    public DbSet<Game> Games { get; set; } = null!;
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Race>()
@@ -20,6 +24,15 @@ public class StarcraftDbContext : DbContext
                 new("Terran"),
                 new("Zerg"),
                 new("Protoss")
+            });
+
+        modelBuilder.Entity<Player>()
+            .HasData(new List<Player>
+            {
+                new(1, "@gregzhadko"),
+                new(2, "@Novikov_N"),
+                new(3, "@sivykh"),
+                new(4, "@dfomin")
             });
     }
 }

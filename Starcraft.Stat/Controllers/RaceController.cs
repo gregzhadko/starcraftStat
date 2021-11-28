@@ -19,13 +19,13 @@ namespace Starcraft.Stat.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Race>>> GetRace()
         {
-            return await _context.Race.ToListAsync();
+            return await _context.Races.ToListAsync();
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Race>> GetRace(string id)
         {
-            var race = await _context.Race.FindAsync(id);
+            var race = await _context.Races.FindAsync(id);
 
             if (race == null)
             {

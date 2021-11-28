@@ -31,4 +31,29 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+//TODO: make it async
+ApplyMigrations(app);
+
 app.Run();
+
+void ApplyMigrations(IHost host)
+{
+    using var scope = host.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<StarcraftDbContext>();
+
+    var pendingMigrations = db.Database.GetPendingMigrations().ToArray();
+    if (!pendingMigrations.Any())
+    {
+        return;
+    }
+
+    try
+    {
+        db.Database.Migrate();
+    }
+    catch (Exception e)
+    {
+        Console.WriteLine(e);
+        throw;
+    }
+}
