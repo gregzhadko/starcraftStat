@@ -1,4 +1,4 @@
-﻿namespace Starcraft.Stat.Models;
+﻿namespace Starcraft.Stat.DbModels;
 
 public class Game
 {
@@ -11,6 +11,8 @@ public class Game
     public Team Team2 { get; set; } = null!;
 
     public Winner Winner { get; set; }
+
+    public DateOnly Date { get; set; }
 }
 
 public enum Winner : byte
