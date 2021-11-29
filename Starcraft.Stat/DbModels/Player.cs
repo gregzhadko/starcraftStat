@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Starcraft.Stat.Models;
+namespace Starcraft.Stat.DbModels;
 
 public class Player
 {

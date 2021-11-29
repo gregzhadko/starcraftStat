@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Starcraft.Stat.Models;
+using Starcraft.Stat.DbModels;
 
 namespace Starcraft.Stat.DataBase;
 
