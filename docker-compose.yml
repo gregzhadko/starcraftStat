@@ -1,7 +1,33 @@
-version: "3.8"
+version: '3.8'
 
 services:
   api:
+    container_name: 'starcraft'
     build: .
+    image: gregzhadko/starcraft:latest
     ports:
-      - 8080:80
+      - "5000:80"
+    depends_on: 
+      - postgres
+    networks: 
+      - starcraft-docker
+
+  postgres:
+    container_name: 'postgres'
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: pp3gpsOAHK
+    ports:
+      - "5432:5432"
+    volumes:
+      - 'starcraft-postgresql-volume:/var/lib/postgresql/data'
+    networks:
+      - starcraft-docker
+    
+volumes:
+  starcraft-postgresql-volume:
+    
+networks:
+  starcraft-docker:
+    driver: bridge
