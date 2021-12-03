@@ -38,12 +38,26 @@ app.Run();
 
 void ApplyMigrations(IHost host)
 {
+    Console.WriteLine("Start migration");
     using var scope = host.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<StarcraftDbContext>();
 
+    Console.WriteLine("Ensure created...");
+    db.Database.EnsureCreated();
+    var races = db.Races.ToArray();
+    foreach (var race in races)
+    {
+        Console.WriteLine(race.Name);
+    }
+    return;
+    
+    //For the next runs we can use this code
+
+    Console.WriteLine("Trying to get pending migrations");
     var pendingMigrations = db.Database.GetPendingMigrations().ToArray();
     if (!pendingMigrations.Any())
     {
+        Console.WriteLine("No migrations to add");
         return;
     }
 
