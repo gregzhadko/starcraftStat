@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Starcraft.Stat.DataBase;
 using Starcraft.Stat.DbModels;
 using Starcraft.Stat.Models.Requests;
+using Starcraft.Stat.Services;
 
 namespace Starcraft.Stat.Controllers;
 
@@ -10,10 +11,12 @@ namespace Starcraft.Stat.Controllers;
 [ApiController]
 public class GameController : ControllerBase
 {
+    private readonly IStatisticsService _statisticsService;
     private readonly StarcraftDbContext _context;
-    public GameController(StarcraftDbContext context)
+    public GameController(StarcraftDbContext context, IStatisticsService statisticsService)
     {
         _context = context;
+        _statisticsService = statisticsService;
     }
 
     [HttpPost("Add")]
@@ -30,7 +33,8 @@ public class GameController : ControllerBase
             var game = new Game { Team1 = team1, Team2 = team2, Winner = Winner.Team1, Date = DateOnly.FromDateTime(DateTime.UtcNow) };
             _context.Games.Add(game);
             await _context.SaveChangesAsync();
-            return Ok();
+
+            return Ok(await _statisticsService.GetPlayerStatisticsAsync());
         }
         catch
         {
