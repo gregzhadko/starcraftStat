@@ -1,15 +1,19 @@
+using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using Starcraft.Stat.DataBase;
+using Starcraft.Stat.Models.Requests;
+using Starcraft.Stat.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<StarcraftDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("StarcraftDbContext")));
 
+builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<AddGameRequestValidator>());
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
