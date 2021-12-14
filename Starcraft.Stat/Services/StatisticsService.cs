@@ -31,9 +31,16 @@ public class StatisticsService : IStatisticsService
         var raceDictionary = new Dictionary<(string race1, string race2), int>();
         foreach (var game in games)
         {
-            var winnerTeam = game.Winner == Winner.Team1 ? game.Team1 : game.Team2;
+            var (winnerTeam, loserTeam) = game.Winner == Winner.Team1 ? (game.Team1, game.Team2) : (game.Team2, game.Team1);
             AddOrIncrementDictionaryValue(playersDictionary, winnerTeam.Player1.Name);
             AddOrIncrementDictionaryValue(playersDictionary, winnerTeam.Player2.Name);
+
+            if (new[] {winnerTeam.Race1.Name, winnerTeam.Race2.Name}.OrderBy(i => i)
+                .SequenceEqual(new[] {loserTeam.Race1.Name, loserTeam.Race2.Name})) //No need to add the race winning statistics in case the race pairs are the same
+            {
+                continue;
+            }
+            
             var races = new[] {winnerTeam.Race1.Name, winnerTeam.Race2.Name}.OrderBy(i => i).ToArray();
             AddOrIncrementDictionaryValue(raceDictionary, (races[0], races[1]));
         }
