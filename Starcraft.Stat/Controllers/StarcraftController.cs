@@ -12,7 +12,7 @@ public class StarcraftController : ControllerBase
     {
         _logger = logger;
     }
-    
+
     [HttpGet]
     public string Get()
     {

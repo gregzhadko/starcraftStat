@@ -11,11 +11,11 @@ public class StarcraftDbContext : DbContext
     }
 
     public DbSet<Race> Races { get; set; } = null!;
-    
+
     public DbSet<Player> Players { get; set; } = null!;
     public DbSet<Team> Teams { get; set; } = null!;
     public DbSet<Game> Games { get; set; } = null!;
-    
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Race>()
