@@ -11,8 +11,9 @@ namespace Starcraft.Stat.Controllers;
 [ApiController]
 public class GameController : ControllerBase
 {
-    private readonly IStatisticsService _statisticsService;
     private readonly StarcraftDbContext _context;
+    private readonly IStatisticsService _statisticsService;
+
     public GameController(StarcraftDbContext context, IStatisticsService statisticsService)
     {
         _context = context;
@@ -30,7 +31,8 @@ public class GameController : ControllerBase
             var team1 = await GetExistingTeamAsync(BuildTeam(request.Team1, races, players));
             var team2 = await GetExistingTeamAsync(BuildTeam(request.Team2, races, players));
 
-            var game = new Game { Team1 = team1, Team2 = team2, Winner = request.Winner, Date = DateOnly.FromDateTime(DateTime.UtcNow) };
+            var game = new Game
+                {Team1 = team1, Team2 = team2, Winner = request.Winner, Date = DateOnly.FromDateTime(DateTime.UtcNow)};
             _context.Games.Add(game);
             await _context.SaveChangesAsync();
 
@@ -41,8 +43,9 @@ public class GameController : ControllerBase
             return BadRequest();
         }
     }
-    
-    private static Team BuildTeam(TeamRequest request, IReadOnlyDictionary<string, Race> races, IReadOnlyDictionary<string, Player> players)
+
+    private static Team BuildTeam(TeamRequest request, IReadOnlyDictionary<string, Race> races,
+        IReadOnlyDictionary<string, Player> players)
     {
         return new Team
         {
@@ -55,7 +58,9 @@ public class GameController : ControllerBase
 
     private async Task<Team> GetExistingTeamAsync(Team team)
     {
-        var existingTeam = await _context.Teams.FirstOrDefaultAsync(t => t.Player1Id == team.Player1Id && t.Race1Id == team.Race1Id && t.Player2Id == team.Player2Id && t.Race2Id == team.Race2Id);
+        var existingTeam = await _context.Teams.FirstOrDefaultAsync(t =>
+            t.Player1Id == team.Player1Id && t.Race1Id == team.Race1Id && t.Player2Id == team.Player2Id &&
+            t.Race2Id == team.Race2Id);
         if (existingTeam != null)
         {
             return existingTeam;
@@ -63,6 +68,5 @@ public class GameController : ControllerBase
 
         _context.Teams.Add(team);
         return team;
-
     }
 }

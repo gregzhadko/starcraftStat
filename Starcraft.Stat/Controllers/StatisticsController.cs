@@ -15,7 +15,7 @@ public class StatisticsController : ControllerBase
         _service = service;
     }
 
-    [HttpGet()]
+    [HttpGet]
     public Task<StatisticsResponse> GetPlayersStatistics()
     {
         return _service.GetPlayerStatisticsAsync();

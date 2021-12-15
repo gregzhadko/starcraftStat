@@ -1,6 +1,7 @@
 ﻿namespace Starcraft.Stat.Models.Responses;
 
-public record StatisticsResponse(PlayerStatisticsResponse[] PlayerStatistics, TeamStatisticsResponse[] TeamStatistics,  RacesStatisticsResponse[] RacesStatistics);
+public record StatisticsResponse(PlayerStatisticsResponse[] PlayerStatistics, TeamStatisticsResponse[] TeamStatistics,
+    RacesStatisticsResponse[] RacesStatistics);
 
 public record PlayerStatisticsResponse(string Name, int Wins);
 
