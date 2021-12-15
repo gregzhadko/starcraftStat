@@ -53,25 +53,4 @@ void ApplyMigrations(IHost host)
     {
         Console.WriteLine(race.Name);
     }
-    return;
-    
-    //For the next runs we can use this code
-
-    Console.WriteLine("Trying to get pending migrations");
-    var pendingMigrations = db.Database.GetPendingMigrations().ToArray();
-    if (!pendingMigrations.Any())
-    {
-        Console.WriteLine("No migrations to add");
-        return;
-    }
-
-    try
-    {
-        db.Database.Migrate();
-    }
-    catch (Exception e)
-    {
-        Console.WriteLine(e);
-        throw;
-    }
 }
