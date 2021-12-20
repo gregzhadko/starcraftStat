@@ -10,6 +10,7 @@ builder.Services.AddDbContext<StarcraftDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("StarcraftDbContext")));
 
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
+builder.Services.AddScoped<IGameService, GameService>();
 
 // Add services to the container.
 

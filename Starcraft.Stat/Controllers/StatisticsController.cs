@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Starcraft.Stat.Models.Responses;
 using Starcraft.Stat.Services;
 
 namespace Starcraft.Stat.Controllers;
@@ -16,8 +15,9 @@ public class StatisticsController : ControllerBase
     }
 
     [HttpGet]
-    public Task<StatisticsResponse> GetPlayersStatistics()
+    public async Task<IActionResult> GetPlayersStatistics(bool pretty = false)
     {
-        return _service.GetPlayerStatisticsAsync();
+        var response = await _service.GetPlayerStatisticsAsync();
+        return Ok(pretty ? response.ToPretty() : response);
     }
 }
