@@ -4,8 +4,8 @@ using Starcraft.Stat.Services;
 
 namespace Starcraft.Stat.Controllers;
 
-[Route("api/[controller]")]
 [ApiController]
+[Route("[controller]")]
 public class GameController : ControllerBase
 {
     private readonly IStatisticsService _statisticsService;
