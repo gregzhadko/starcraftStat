@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Starcraft.Stat.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class StarcraftController : ControllerBase
 {
     private readonly ILogger<StarcraftController> _logger;
@@ -12,7 +12,7 @@ public class StarcraftController : ControllerBase
     {
         _logger = logger;
     }
-    
+
     [HttpGet]
     public string Get()
     {

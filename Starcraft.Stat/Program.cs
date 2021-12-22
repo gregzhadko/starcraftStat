@@ -1,8 +1,9 @@
+using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using Starcraft.Stat.DataBase;
-using Starcraft.Stat.Models;
+using Starcraft.Stat.Models.Requests;
 using Starcraft.Stat.Services;
-using Telegram.Bot;
+using Starcraft.Stat.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 var botConfig = builder.Configuration.GetSection("BotConfiguration").Get<BotConfiguration>();
@@ -10,10 +11,13 @@ var botConfig = builder.Configuration.GetSection("BotConfiguration").Get<BotConf
 builder.Services.AddDbContext<StarcraftDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("StarcraftDbContext")));
 
+builder.Services.AddScoped<IStatisticsService, StatisticsService>();
+builder.Services.AddScoped<IGameService, GameService>();
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<AddGameRequestValidator>());
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -92,27 +96,5 @@ void ApplyMigrations(IHost host)
     foreach (var race in races)
     {
         Console.WriteLine(race.Name);
-    }
-    return;
-    
-    //For the next runs we can use this code
-
-    Console.WriteLine("Trying to get pending migrations");
-    var pendingMigrations = db.Database.GetPendingMigrations().ToArray();
-    if (!pendingMigrations.Any())
-    {
-        Console.WriteLine("No migrations to add");
-        return;
-    }
-
-    try
-    {
-        Console.WriteLine("Started migration");
-        db.Database.Migrate();
-    }
-    catch (Exception e)
-    {
-        Console.WriteLine(e);
-        throw;
     }
 }

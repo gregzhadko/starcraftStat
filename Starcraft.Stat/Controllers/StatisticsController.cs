@@ -1,8 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Starcraft.Stat.DataBase;
-using Starcraft.Stat.DbModels;
-using Starcraft.Stat.Models.Responses;
+using Starcraft.Stat.Services;
 
 namespace Starcraft.Stat.Controllers;
 
@@ -10,43 +7,17 @@ namespace Starcraft.Stat.Controllers;
 [ApiController]
 public class StatisticsController : ControllerBase
 {
-    private readonly StarcraftDbContext _context;
+    private readonly IStatisticsService _service;
 
-    public StatisticsController(StarcraftDbContext context)
+    public StatisticsController(IStatisticsService service)
     {
-        _context = context;
+        _service = service;
     }
 
-    [HttpGet("Player")]
-    public async Task<PlayerStatisticsResponse[]> GetPlayersStatistics()
+    [HttpGet]
+    public async Task<IActionResult> GetPlayersStatistics(bool pretty = false)
     {
-        var games = await _context.Games
-            .Include(g => g.Team1).ThenInclude(t => t.Player1)
-            .Include(g => g.Team1).ThenInclude(t => t.Player2)
-            .Include(g => g.Team2).ThenInclude(t => t.Player1)
-            .Include(g => g.Team2).ThenInclude(t => t.Player2)
-            .ToArrayAsync();
-
-        var dictionary = new Dictionary<string, int>();
-        foreach (var game in games)
-        {
-            var winnerTeam = game.Winner == Winner.Team1 ? game.Team1 : game.Team2;
-            AddOrIncrementDictionaryValue(dictionary, winnerTeam.Player1.Name);
-            AddOrIncrementDictionaryValue(dictionary, winnerTeam.Player2.Name);
-        }
-        
-        return dictionary.Select(kv => new PlayerStatisticsResponse(kv.Key, kv.Value)).OrderByDescending(r => r.NumberOfWins).ToArray();
-    }
-
-    private static void AddOrIncrementDictionaryValue<T>(IDictionary<T, int> dictionary, T value) where T : notnull
-    {
-        if (dictionary.ContainsKey(value))
-        {
-            dictionary[value]++;
-        }
-        else
-        {
-            dictionary[value] = 1;
-        }
+        var response = await _service.GetPlayerStatisticsAsync();
+        return Ok(pretty ? response.ToPretty() : response);
     }
 }
