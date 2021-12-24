@@ -23,7 +23,7 @@ services:
 
   postgres:
     container_name: 'postgres'
-    image: postgres
+    image: postgres:alpine
     restart: always
     environment:
       POSTGRES_PASSWORD: pp3gpsOAHK
