@@ -3,6 +3,7 @@ version: '3.8'
 services:
   backend:
     container_name: 'starcraft'
+    restart: always
     build: .
     image: gregzhadko/starcraft:latest
     ports:
@@ -23,7 +24,7 @@ services:
 
   postgres:
     container_name: 'postgres'
-    image: postgres
+    image: postgres:alpine
     restart: always
     environment:
       POSTGRES_PASSWORD: pp3gpsOAHK

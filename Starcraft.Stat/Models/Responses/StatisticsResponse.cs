@@ -30,6 +30,8 @@ public record StatisticsResponse(PlayerStatisticsResponse[] PlayerStatistics, Te
             result.AppendLine(racesStatistic.ToPretty());
         }
 
+        result.AppendLine();
+
         return result.ToString();
     }
 }
