@@ -5,8 +5,8 @@ using Starcraft.Stat.DbModels;
 
 namespace Starcraft.Stat.Controllers;
 
-[Route("api/[controller]")]
 [ApiController]
+[Route("[controller]")]
 public class RaceController : ControllerBase
 {
     private readonly StarcraftDbContext _context;
