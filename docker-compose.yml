@@ -3,6 +3,7 @@ version: '3.8'
 services:
   backend:
     container_name: 'starcraft'
+    restart: always
     build: .
     image: gregzhadko/starcraft:latest
     ports:
