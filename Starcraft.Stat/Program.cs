@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Starcraft.Stat.DataBase;
 using Starcraft.Stat.Models.Requests;
 using Starcraft.Stat.Services;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,13 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
+
+app.UseAuthentication();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -32,9 +40,7 @@ if (app.Environment.IsDevelopment())
 Console.WriteLine("Starcraft started");
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
 
 //TODO: make it async
