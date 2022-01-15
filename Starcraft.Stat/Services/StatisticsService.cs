@@ -32,10 +32,9 @@ public class StatisticsService : IStatisticsService
         var playersDictionary = new Dictionary<string, int>();
         var teamsDictionary = new Dictionary<(string player1, string player2), int>();
         var raceDictionary = new Dictionary<(string race1, string race2), WinLooses>();
-        var gameResponse = new GameResponse[games.Length];
-        for (var i = 0; i < games.Length; i++)
+        var gameResponse = new List<GameResponse>(games.Length);
+        foreach (var game in games)
         {
-            var game = games[i];
             var (winnerTeam, loserTeam) = game.Winner == Winner.Team1 ? (game.Team1, game.Team2) : (game.Team2, game.Team1);
             AddOrIncrementDictionaryValue(playersDictionary, winnerTeam.Player1.Name);
             AddOrIncrementDictionaryValue(playersDictionary, winnerTeam.Player2.Name);
@@ -47,7 +46,7 @@ public class StatisticsService : IStatisticsService
 
             if (showHistory)
             {
-                gameResponse[i] = new GameResponse(game);
+                gameResponse.Add(new GameResponse(game));
             }
         }
 

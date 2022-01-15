@@ -3,7 +3,7 @@
 namespace Starcraft.Stat.Models.Responses;
 
 public record StatisticsResponse(PlayerStatisticsResponse[] PlayerStatistics, TeamStatisticsResponse[] TeamStatistics,
-    RacesStatisticsResponse[] RacesStatistics, GameResponse[] Games) : IPretty
+    RacesStatisticsResponse[] RacesStatistics, IReadOnlyCollection<GameResponse> Games) : IPretty
 {
     public string ToPretty()
     {
@@ -34,7 +34,7 @@ public record StatisticsResponse(PlayerStatisticsResponse[] PlayerStatistics, Te
 
         result.AppendLine();
 
-        if (Games.Length > 0)
+        if (Games.Count > 0)
         {
             result.AppendLine(GameResponse.Header);
             foreach (var game in Games)
