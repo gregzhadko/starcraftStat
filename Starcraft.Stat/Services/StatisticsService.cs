@@ -74,8 +74,8 @@ public class StatisticsService : IStatisticsService
 
     private static void FillRacesDictionary(IDictionary<(string race1, string race2), WinLooses> raceDictionary, Team winnerTeam, Team loserTeam)
     {
-        var winnerRaces = new[] {winnerTeam.Race1.Name, winnerTeam.Race2.Name}.OrderBy(i => i).ToArray();
-        var loserRaces = new[] {loserTeam.Race1.Name, loserTeam.Race2.Name}.OrderBy(i => i).ToArray();
+        var winnerRaces = new[] { winnerTeam.Race1.Name, winnerTeam.Race2.Name }.OrderBy(i => i).ToArray();
+        var loserRaces = new[] { loserTeam.Race1.Name, loserTeam.Race2.Name }.OrderBy(i => i).ToArray();
 
         if (winnerRaces.SequenceEqual(loserRaces))
         {
