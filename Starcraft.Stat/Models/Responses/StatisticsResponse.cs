@@ -5,6 +5,8 @@ namespace Starcraft.Stat.Models.Responses;
 public record StatisticsResponse(PlayerStatisticsResponse[] PlayerStatistics, TeamStatisticsResponse[] TeamStatistics,
     RacesStatisticsResponse[] RacesStatistics, IReadOnlyCollection<GameResponse> Games) : IPretty
 {
+    public static string Header => "Statistics";
+
     public string ToPretty()
     {
         var result = new StringBuilder();
@@ -45,6 +47,4 @@ public record StatisticsResponse(PlayerStatisticsResponse[] PlayerStatistics, Te
 
         return result.ToString();
     }
-
-    public static string Header => "Statistics";
 }

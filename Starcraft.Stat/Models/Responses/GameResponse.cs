@@ -32,10 +32,6 @@ public record GameResponse : IPretty
         LoserRace2 = loserTeam.Race2.ShortName;
     }
 
-    public string ToPretty() => $"{GetPretty(WinnerPlayer1, WinnerRace1)} {GetPretty(WinnerPlayer2, WinnerRace2)} 1 : 0  {GetPretty(LoserPlayer1, LoserRace1)} {GetPretty(LoserPlayer2, LoserRace2)}";
-
-    private static string GetPretty(string player, string race) => $"{$"{player} ({race})",-16}";
-
     public string WinnerPlayer1 { get; }
 
     public string WinnerRace1 { get; }
@@ -52,4 +48,8 @@ public record GameResponse : IPretty
 
     public string LoserRace2 { get; }
     public static string Header => "History:";
+
+    public string ToPretty() => $"{GetPretty(WinnerPlayer1, WinnerRace1)} {GetPretty(WinnerPlayer2, WinnerRace2)} 1 : 0  {GetPretty(LoserPlayer1, LoserRace1)} {GetPretty(LoserPlayer2, LoserRace2)}";
+
+    private static string GetPretty(string player, string race) => $"{$"{player} ({race})",-16}";
 }

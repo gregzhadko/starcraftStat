@@ -17,10 +17,7 @@ public class RaceController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Race>>> GetRace()
-    {
-        return await _context.Races.ToListAsync();
-    }
+    public async Task<ActionResult<IEnumerable<Race>>> GetRace() => await _context.Races.ToListAsync();
 
     [HttpGet("{id}")]
     public async Task<ActionResult<Race>> GetRace(string id)

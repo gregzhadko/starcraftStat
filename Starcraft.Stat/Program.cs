@@ -1,9 +1,9 @@
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Starcraft.Stat.DataBase;
 using Starcraft.Stat.Models.Requests;
 using Starcraft.Stat.Services;
-using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
