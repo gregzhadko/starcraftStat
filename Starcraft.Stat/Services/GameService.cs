@@ -23,7 +23,7 @@ public class GameService : IGameService
         var team2 = await GetExistingTeamAsync(BuildTeam(request.Team2, races, players));
 
         var game = new Game
-            {Team1 = team1, Team2 = team2, Winner = request.Winner, Date = DateOnly.FromDateTime(DateTime.UtcNow)};
+            {Team1 = team1, Team2 = team2, Winner = request.Winner, Date = DateTime.UtcNow};
         _context.Games.Add(game);
         await _context.SaveChangesAsync();
     } 

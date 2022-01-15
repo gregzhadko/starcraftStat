@@ -4,5 +4,5 @@ namespace Starcraft.Stat.Services;
 
 public interface IStatisticsService
 {
-    Task<StatisticsResponse> GetPlayerStatisticsAsync();
+    Task<StatisticsResponse> GetPlayerStatisticsAsync(bool showHistory);
 }

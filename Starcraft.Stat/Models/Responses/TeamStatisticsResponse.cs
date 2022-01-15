@@ -2,6 +2,6 @@
 
 public record TeamStatisticsResponse(string Player1, string Player2, int Wins) : IPretty
 {
-    public static string Header => $"{"Wins",-5}Races";
+    public static string Header => $"{"Wins",-5}Teams";
     public string ToPretty() => $"{$"{Wins}",-5}{$"{Player1}",-15}{Player2}";
 }

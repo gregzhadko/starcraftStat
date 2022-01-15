@@ -3,7 +3,7 @@ using JetBrains.Annotations;
 
 namespace Starcraft.Stat.Models.Requests;
 
-public record AddGameRequest(TeamRequest Team1, TeamRequest Team2, Winner Winner);
+public record AddGameRequest(TeamRequest Team1, TeamRequest Team2, Winner Winner, bool ShowHistory);
 
 [UsedImplicitly]
 public class AddGameRequestValidator : AbstractValidator<AddGameRequest>
