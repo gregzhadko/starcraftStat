@@ -6,9 +6,9 @@ namespace Starcraft.Stat.Services;
 
 public class ConfigureWebhook : IHostedService
 {
+    private readonly BotConfiguration _botConfig;
     private readonly ILogger<ConfigureWebhook> _logger;
     private readonly IServiceProvider _services;
-    private readonly BotConfiguration _botConfig;
 
     public ConfigureWebhook(ILogger<ConfigureWebhook> logger,
         IServiceProvider serviceProvider,
@@ -33,7 +33,7 @@ public class ConfigureWebhook : IHostedService
         var webhookAddress = @$"{_botConfig.HostAddress}/bot/{_botConfig.BotToken}";
         _logger.LogInformation("Setting webhook: {WebhookAddress}", webhookAddress);
         await botClient.SetWebhookAsync(
-            url: webhookAddress,
+            webhookAddress,
             allowedUpdates: Array.Empty<UpdateType>(),
             cancellationToken: cancellationToken);
     }

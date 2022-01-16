@@ -29,12 +29,12 @@ public class HandleUpdateService
             // UpdateType.ShippingQuery:
             // UpdateType.PreCheckoutQuery:
             // UpdateType.Poll:
-            UpdateType.Message            => BotOnMessageReceived(update.Message!),
-            UpdateType.EditedMessage      => BotOnMessageReceived(update.EditedMessage!),
-            UpdateType.CallbackQuery      => BotOnCallbackQueryReceived(update.CallbackQuery!),
-            UpdateType.InlineQuery        => BotOnInlineQueryReceived(update.InlineQuery!),
+            UpdateType.Message => BotOnMessageReceived(update.Message!),
+            UpdateType.EditedMessage => BotOnMessageReceived(update.EditedMessage!),
+            UpdateType.CallbackQuery => BotOnCallbackQueryReceived(update.CallbackQuery!),
+            UpdateType.InlineQuery => BotOnInlineQueryReceived(update.InlineQuery!),
             UpdateType.ChosenInlineResult => BotOnChosenInlineResultReceived(update.ChosenInlineResult!),
-            _                             => UnknownUpdateHandlerAsync(update)
+            _ => UnknownUpdateHandlerAsync(update)
         };
 
         try
@@ -49,21 +49,23 @@ public class HandleUpdateService
 
     private async Task BotOnMessageReceived(Message message)
     {
-        _logger.LogInformation("Receive message type: {messageType}", message.Type);
+        _logger.LogInformation("Receive message type: {MessageType}", message.Type);
         if (message.Type != MessageType.Text)
+        {
             return;
+        }
 
         var action = message.Text!.Split(' ')[0] switch
         {
-            "/inline"   => SendInlineKeyboard(_botClient, message),
+            "/inline" => SendInlineKeyboard(_botClient, message),
             "/keyboard" => SendReplyKeyboard(_botClient, message),
-            "/remove"   => RemoveKeyboard(_botClient, message),
-            "/photo"    => SendFile(_botClient, message),
-            "/request"  => RequestContactAndLocation(_botClient, message),
-            _           => Usage(_botClient, message)
+            "/remove" => RemoveKeyboard(_botClient, message),
+            "/photo" => SendFile(_botClient, message),
+            "/request" => RequestContactAndLocation(_botClient, message),
+            _ => Usage(_botClient, message)
         };
-        Message sentMessage = await action;
-        _logger.LogInformation("The message was sent with id: {sentMessageId}",sentMessage.MessageId);
+        var sentMessage = await action;
+        _logger.LogInformation("The message was sent with id: {SentMessageId}", sentMessage.MessageId);
 
         // Send inline keyboard
         // You can process responses in BotOnCallbackQueryReceived handler
@@ -78,22 +80,22 @@ public class HandleUpdateService
                 new[]
                 {
                     // first row
-                    new []
+                    new[]
                     {
                         InlineKeyboardButton.WithCallbackData("1.1", "11"),
-                        InlineKeyboardButton.WithCallbackData("1.2", "12"),
+                        InlineKeyboardButton.WithCallbackData("1.2", "12")
                     },
                     // second row
-                    new []
+                    new[]
                     {
                         InlineKeyboardButton.WithCallbackData("2.1", "21"),
-                        InlineKeyboardButton.WithCallbackData("2.2", "22"),
-                    },
+                        InlineKeyboardButton.WithCallbackData("2.2", "22")
+                    }
                 });
 
-            return await bot.SendTextMessageAsync(chatId: message.Chat.Id,
-                                                  text: "Choose",
-                                                  replyMarkup: inlineKeyboard);
+            return await bot.SendTextMessageAsync(message.Chat.Id,
+                "Choose",
+                replyMarkup: inlineKeyboard);
         }
 
         static async Task<Message> SendReplyKeyboard(ITelegramBotClient bot, Message message)
@@ -101,23 +103,23 @@ public class HandleUpdateService
             ReplyKeyboardMarkup replyKeyboardMarkup = new(
                 new[]
                 {
-                        new KeyboardButton[] { "1.1", "1.2" },
-                        new KeyboardButton[] { "2.1", "2.2" },
+                    new KeyboardButton[] { "1.1", "1.2" },
+                    new KeyboardButton[] { "2.1", "2.2" }
                 })
-                {
-                    ResizeKeyboard = true
-                };
+            {
+                ResizeKeyboard = true
+            };
 
-            return await bot.SendTextMessageAsync(chatId: message.Chat.Id,
-                                                  text: "Choose",
-                                                  replyMarkup: replyKeyboardMarkup);
+            return await bot.SendTextMessageAsync(message.Chat.Id,
+                "Choose",
+                replyMarkup: replyKeyboardMarkup);
         }
 
         static async Task<Message> RemoveKeyboard(ITelegramBotClient bot, Message message)
         {
-            return await bot.SendTextMessageAsync(chatId: message.Chat.Id,
-                                                  text: "Removing keyboard",
-                                                  replyMarkup: new ReplyKeyboardRemove());
+            return await bot.SendTextMessageAsync(message.Chat.Id,
+                "Removing keyboard",
+                replyMarkup: new ReplyKeyboardRemove());
         }
 
         static async Task<Message> SendFile(ITelegramBotClient bot, Message message)
@@ -125,26 +127,26 @@ public class HandleUpdateService
             await bot.SendChatActionAsync(message.Chat.Id, ChatAction.UploadPhoto);
 
             const string filePath = @"Files/tux.png";
-            using FileStream fileStream = new(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            await using FileStream fileStream = new(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
             var fileName = filePath.Split(Path.DirectorySeparatorChar).Last();
 
-            return await bot.SendPhotoAsync(chatId: message.Chat.Id,
-                                            photo: new InputOnlineFile(fileStream, fileName),
-                                            caption: "Nice Picture");
+            return await bot.SendPhotoAsync(message.Chat.Id,
+                new InputOnlineFile(fileStream, fileName),
+                "Nice Picture");
         }
 
         static async Task<Message> RequestContactAndLocation(ITelegramBotClient bot, Message message)
         {
-            ReplyKeyboardMarkup RequestReplyKeyboard = new(
+            ReplyKeyboardMarkup requestReplyKeyboard = new(
                 new[]
                 {
                     KeyboardButton.WithRequestLocation("Location"),
-                    KeyboardButton.WithRequestContact("Contact"),
+                    KeyboardButton.WithRequestContact("Contact")
                 });
 
-            return await bot.SendTextMessageAsync(chatId: message.Chat.Id,
-                                                  text: "Who or Where are you?",
-                                                  replyMarkup: RequestReplyKeyboard);
+            return await bot.SendTextMessageAsync(message.Chat.Id,
+                "Who or Where are you?",
+                replyMarkup: requestReplyKeyboard);
         }
 
         static async Task<Message> Usage(ITelegramBotClient bot, Message message)
@@ -156,70 +158,66 @@ public class HandleUpdateService
                                  "/photo    - send a photo\n" +
                                  "/request  - request location or contact";
 
-            return await bot.SendTextMessageAsync(chatId: message.Chat.Id,
-                                                  text: usage,
-                                                  replyMarkup: new ReplyKeyboardRemove());
+            return await bot.SendTextMessageAsync(message.Chat.Id,
+                usage,
+                replyMarkup: new ReplyKeyboardRemove());
         }
     }
 
     // Process Inline Keyboard callback data
     private async Task BotOnCallbackQueryReceived(CallbackQuery callbackQuery)
     {
-        await _botClient.AnswerCallbackQueryAsync(
-            callbackQueryId: callbackQuery.Id,
-            text: $"Received {callbackQuery.Data}");
+        await _botClient.AnswerCallbackQueryAsync(callbackQuery.Id, $"Received {callbackQuery.Data}");
+        await _botClient.SendTextMessageAsync(callbackQuery.Message!.Chat.Id, $"Received {callbackQuery.Data}");
+    }
 
-        await _botClient.SendTextMessageAsync(
-            chatId: callbackQuery.Message.Chat.Id,
-            text: $"Received {callbackQuery.Data}");
+    private Task UnknownUpdateHandlerAsync(Update update)
+    {
+        _logger.LogInformation("Unknown update type: {UpdateType}", update.Type);
+        return Task.CompletedTask;
+    }
+
+    private Task HandleErrorAsync(Exception exception)
+    {
+        var errorMessage = exception switch
+        {
+            ApiRequestException apiRequestException => $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",
+            _ => exception.ToString()
+        };
+
+        _logger.LogInformation("HandleError: {ErrorMessage}", errorMessage);
+        return Task.CompletedTask;
     }
 
     #region Inline Mode
 
     private async Task BotOnInlineQueryReceived(InlineQuery inlineQuery)
     {
-        _logger.LogInformation("Received inline query from: {inlineQueryFromId}", inlineQuery.From.Id);
+        _logger.LogInformation("Received inline query from: {InlineQueryFromId}", inlineQuery.From.Id);
 
-        InlineQueryResult[] results = {
+        InlineQueryResult[] results =
+        {
             // displayed result
             new InlineQueryResultArticle(
-                id: "3",
-                title: "TgBots",
-                inputMessageContent: new InputTextMessageContent(
+                "3",
+                "TgBots",
+                new InputTextMessageContent(
                     "hello"
                 )
             )
         };
 
-        await _botClient.AnswerInlineQueryAsync(inlineQueryId: inlineQuery.Id,
-                                                results: results,
-                                                isPersonal: true,
-                                                cacheTime: 0);
+        await _botClient.AnswerInlineQueryAsync(inlineQuery.Id,
+            results,
+            isPersonal: true,
+            cacheTime: 0);
     }
 
     private Task BotOnChosenInlineResultReceived(ChosenInlineResult chosenInlineResult)
     {
-        _logger.LogInformation("Received inline result: {chosenInlineResultId}", chosenInlineResult.ResultId);
+        _logger.LogInformation("Received inline result: {ChosenInlineResultId}", chosenInlineResult.ResultId);
         return Task.CompletedTask;
     }
 
     #endregion
-
-    private Task UnknownUpdateHandlerAsync(Update update)
-    {
-        _logger.LogInformation("Unknown update type: {updateType}", update.Type);
-        return Task.CompletedTask;
-    }
-
-    public Task HandleErrorAsync(Exception exception)
-    {
-        var ErrorMessage = exception switch
-        {
-            ApiRequestException apiRequestException => $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",
-            _ => exception.ToString()
-        };
-
-        _logger.LogInformation("HandleError: {ErrorMessage}", ErrorMessage);
-        return Task.CompletedTask;
-    }
 }
