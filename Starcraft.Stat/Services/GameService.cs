@@ -30,7 +30,7 @@ public class GameService : IGameService
 
     private static Team BuildTeam(TeamRequest request, IReadOnlyDictionary<string, Race> races,
         IReadOnlyDictionary<string, Player> players) =>
-        new Team
+        new()
         {
             Player1Id = players[request.Player1].Id,
             Race1Id = races[request.Race1].Name,
