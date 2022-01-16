@@ -8,8 +8,8 @@ namespace Starcraft.Stat.Controllers;
 [Route("[controller]")]
 public class GameController : ControllerBase
 {
-    private readonly IStatisticsService _statisticsService;
     private readonly IGameService _gameService;
+    private readonly IStatisticsService _statisticsService;
 
     public GameController(IGameService gameService, IStatisticsService statisticsService)
     {
@@ -18,12 +18,12 @@ public class GameController : ControllerBase
     }
 
     [HttpPost("Add")]
-    public async Task<IActionResult> AddGame([FromQuery]bool pretty, [FromBody]AddGameRequest request)
+    public async Task<IActionResult> AddGame([FromQuery] bool pretty, [FromBody] AddGameRequest request)
     {
         try
         {
             await _gameService.AddGameAsync(request);
-            var response = await _statisticsService.GetPlayerStatisticsAsync();
+            var response = await _statisticsService.GetPlayerStatisticsAsync(request.ShowHistory);
             return Ok(pretty ? response.ToPretty() : response);
         }
         catch
@@ -31,6 +31,4 @@ public class GameController : ControllerBase
             return BadRequest();
         }
     }
-
-
 }
