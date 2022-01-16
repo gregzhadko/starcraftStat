@@ -1,4 +1,5 @@
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Starcraft.Stat.DataBase;
 using Starcraft.Stat.Models.Requests;
@@ -44,6 +45,13 @@ builder.Services.AddHttpClient("telegramWebHook")
 
 var app = builder.Build();
 
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
+
+app.UseAuthentication();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -54,9 +62,7 @@ if (app.Environment.IsDevelopment())
 Console.WriteLine("Starcraft started");
 
 app.UseHttpsRedirection();
-
 //app.UseAuthorization();
-
 app.UseRouting();
 app.UseCors();
 
@@ -80,7 +86,7 @@ app.MapControllers();
 
 //TODO: make it async
 
-//ApplyMigrations(app);
+ApplyMigrations(app);
 
 app.Run();
 

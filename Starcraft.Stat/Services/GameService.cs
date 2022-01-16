@@ -23,22 +23,20 @@ public class GameService : IGameService
         var team2 = await GetExistingTeamAsync(BuildTeam(request.Team2, races, players));
 
         var game = new Game
-            {Team1 = team1, Team2 = team2, Winner = request.Winner, Date = DateOnly.FromDateTime(DateTime.UtcNow)};
+            { Team1 = team1, Team2 = team2, Winner = request.Winner, Date = DateTime.UtcNow };
         _context.Games.Add(game);
         await _context.SaveChangesAsync();
-    } 
-    
+    }
+
     private static Team BuildTeam(TeamRequest request, IReadOnlyDictionary<string, Race> races,
-        IReadOnlyDictionary<string, Player> players)
-    {
-        return new Team
+        IReadOnlyDictionary<string, Player> players) =>
+        new Team
         {
             Player1Id = players[request.Player1].Id,
             Race1Id = races[request.Race1].Name,
             Player2Id = players[request.Player2].Id,
             Race2Id = races[request.Race2].Name
         };
-    }
 
     private async Task<Team> GetExistingTeamAsync(Team team)
     {
