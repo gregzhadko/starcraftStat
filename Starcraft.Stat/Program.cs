@@ -2,9 +2,10 @@ using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Starcraft.Stat.DataBase;
+using Starcraft.Stat.Models;
 using Starcraft.Stat.Models.Requests;
 using Starcraft.Stat.Services;
-using Starcraft.Stat.Services;
+using Telegram.Bot;
 
 var builder = WebApplication.CreateBuilder(args);
 var botConfig = builder.Configuration.GetSection("BotConfiguration").Get<BotConfiguration>();
