@@ -29,18 +29,22 @@ public class StatisticsService : IStatisticsService
             .OrderByDescending(g => g.Date)
             .ToArrayAsync();
 
-        var playersDictionary = new Dictionary<string, int>();
-        var teamsDictionary = new Dictionary<(string player1, string player2), int>();
-        var raceDictionary = new Dictionary<(string race1, string race2), WinLooses>();
+        var playersDictionary = new Dictionary<string, WinLosses>();
+        var teamsDictionary = new Dictionary<(string player1, string player2), WinLosses>();
+        var raceDictionary = new Dictionary<(string race1, string race2), WinLosses>();
         var gameResponse = new List<GameResponse>(games.Length);
         foreach (var game in games)
         {
             var (winnerTeam, loserTeam) = game.Winner == Winner.Team1 ? (game.Team1, game.Team2) : (game.Team2, game.Team1);
-            AddOrIncrementDictionaryValue(playersDictionary, winnerTeam.Player1.Name);
-            AddOrIncrementDictionaryValue(playersDictionary, winnerTeam.Player2.Name);
+            AddOrIncrementWinnerLossesDictionary(playersDictionary, winnerTeam.Player1.Name, true);
+            AddOrIncrementWinnerLossesDictionary(playersDictionary, winnerTeam.Player2.Name, true);
+            AddOrIncrementWinnerLossesDictionary(playersDictionary, loserTeam.Player1.Name, false);
+            AddOrIncrementWinnerLossesDictionary(playersDictionary, loserTeam.Player2.Name, false);
 
-            var players = new[] { winnerTeam.Player1.Name, winnerTeam.Player2.Name }.OrderBy(i => i).ToArray();
-            AddOrIncrementDictionaryValue(teamsDictionary, (players[0], players[1]));
+            var winners = new[] { winnerTeam.Player1.Name, winnerTeam.Player2.Name }.OrderBy(i => i).ToArray();
+            var losers = new[] { loserTeam.Player1.Name, loserTeam.Player2.Name }.OrderBy(i => i).ToArray();
+            AddOrIncrementWinnerLossesDictionary(teamsDictionary, (winners[0], winners[1]), true);
+            AddOrIncrementWinnerLossesDictionary(teamsDictionary, (losers[0], losers[1]), false);
 
             FillRacesDictionary(raceDictionary, winnerTeam, loserTeam);
 
@@ -51,12 +55,12 @@ public class StatisticsService : IStatisticsService
         }
 
         var playersStat = playersDictionary
-            .Select(kv => new PlayerStatisticsResponse(kv.Key, kv.Value))
+            .Select(kv => new PlayerStatisticsResponse(kv.Key, kv.Value.Wins, kv.Value.Losses, 100 * (double)kv.Value.Wins / (kv.Value.Losses + kv.Value.Wins)))
             .OrderByDescending(r => r.Wins)
             .ToArray();
 
         var teamStat = teamsDictionary
-            .Select(kv => new TeamStatisticsResponse(kv.Key.player1, kv.Key.player2, kv.Value))
+            .Select(kv => new TeamStatisticsResponse(kv.Key.player1, kv.Key.player2, kv.Value.Wins, kv.Value.Losses, 100 * (double)kv.Value.Wins / (kv.Value.Losses + kv.Value.Wins)))
             .OrderByDescending(r => r.Wins)
             .ToArray();
 
@@ -64,7 +68,7 @@ public class StatisticsService : IStatisticsService
             .Select(kv =>
             {
                 var ((race1, race2), value) = kv;
-                return new RacesStatisticsResponse(race1, race2, value.Wins, value.Looses, 100 * (double)value.Wins / (value.Looses + value.Wins));
+                return new RacesStatisticsResponse(race1, race2, value.Wins, value.Losses, 100 * (double)value.Wins / (value.Losses + value.Wins));
             })
             .OrderByDescending(r => r.WinRate)
             .ToArray();
@@ -72,7 +76,7 @@ public class StatisticsService : IStatisticsService
         return new StatisticsResponse(playersStat, teamStat, racesStat, gameResponse);
     }
 
-    private static void FillRacesDictionary(IDictionary<(string race1, string race2), WinLooses> raceDictionary, Team winnerTeam, Team loserTeam)
+    private static void FillRacesDictionary(IDictionary<(string race1, string race2), WinLosses> raceDictionary, Team winnerTeam, Team loserTeam)
     {
         var winnerRaces = new[] { winnerTeam.Race1.Name, winnerTeam.Race2.Name }.OrderBy(i => i).ToArray();
         var loserRaces = new[] { loserTeam.Race1.Name, loserTeam.Race2.Name }.OrderBy(i => i).ToArray();
@@ -90,41 +94,46 @@ public class StatisticsService : IStatisticsService
         }
         else
         {
-            raceDictionary.Add(winValue, new WinLooses(1, 0));
+            raceDictionary.Add(winValue, new WinLosses(1, 0));
         }
 
         var looseValue = (loserRaces[0], loserRaces[1]);
         if (raceDictionary.ContainsKey(looseValue))
         {
-            raceDictionary[looseValue].Looses++;
+            raceDictionary[looseValue].Losses++;
         }
         else
         {
-            raceDictionary.Add(looseValue, new WinLooses(0, 1));
+            raceDictionary.Add(looseValue, new WinLosses(0, 1));
         }
     }
 
-    private static void AddOrIncrementDictionaryValue<T>(IDictionary<T, int> dictionary, T value) where T : notnull
+    private static void AddOrIncrementWinnerLossesDictionary<T>(IDictionary<T, WinLosses> dictionary, T value, bool winner) where T : notnull
     {
-        if (dictionary.ContainsKey(value))
+        if (!dictionary.ContainsKey(value))
         {
-            dictionary[value]++;
+            dictionary[value] = new WinLosses(0, 0);
+        }
+
+        if (winner)
+        {
+            dictionary[value].Wins++;
         }
         else
         {
-            dictionary[value] = 1;
+            dictionary[value].Losses++;
         }
     }
 
-    private class WinLooses
+    private class WinLosses
     {
-        public WinLooses(int wins, int looses)
+        public WinLosses(int wins, int losses)
         {
             Wins = wins;
-            Looses = looses;
+            Losses = losses;
         }
 
         public int Wins { get; set; }
-        public int Looses { get; set; }
+        public int Losses { get; set; }
     }
 }
