@@ -6,10 +6,17 @@ namespace Starcraft.Stat.Controllers;
 
 public class WebhookController : ControllerBase
 {
-    [HttpPost]
-    public async Task<IActionResult> Post([FromServices] HandleUpdateService handleUpdateService, [FromBody] Update update)
+    private readonly IBotHandleService _botHandleService;
+
+    public WebhookController(IBotHandleService botHandleService)
     {
-        await handleUpdateService.EchoAsync(update);
+        _botHandleService = botHandleService;
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Post([FromBody] Update update)
+    {
+        await _botHandleService.HandleAsync(update);
         return Ok();
     }
 }
