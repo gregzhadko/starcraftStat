@@ -8,19 +8,33 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Starcraft.Stat.Services;
 
-public class HandleUpdateService
+public class BotHandleService : IBotHandleService
 {
     private readonly ITelegramBotClient _botClient;
-    private readonly ILogger<HandleUpdateService> _logger;
+    private readonly IStatisticsService _statisticsService;
+    private readonly ILogger<BotHandleService> _logger;
 
-    public HandleUpdateService(ITelegramBotClient botClient, ILogger<HandleUpdateService> logger)
+    private readonly IDictionary<string, string> _commands = new Dictionary<string, string>
+    {
+        ["statistics"] = "Gets the statistics",
+    };
+
+    public BotHandleService(ITelegramBotClient botClient, ILogger<BotHandleService> logger, IStatisticsService statisticsService)
     {
         _botClient = botClient;
         _logger = logger;
+        _statisticsService = statisticsService;
     }
 
-    public async Task EchoAsync(Update update)
+    public async Task HandleAsync(Update update)
     {
+        if (update.Message == null)
+        {
+            _logger.LogError("Message is empty");
+            return;
+        }
+        //TODO: check chat id and prevent to call if from other chats
+        _logger.LogInformation("Message {Message} from Chat {ChatId}", update.Message.Text, update.Message.Chat.Id);
         var handler = update.Type switch
         {
             // UpdateType.Unknown:
@@ -29,11 +43,11 @@ public class HandleUpdateService
             // UpdateType.ShippingQuery:
             // UpdateType.PreCheckoutQuery:
             // UpdateType.Poll:
-            UpdateType.Message => BotOnMessageReceived(update.Message!),
-            UpdateType.EditedMessage => BotOnMessageReceived(update.EditedMessage!),
-            UpdateType.CallbackQuery => BotOnCallbackQueryReceived(update.CallbackQuery!),
-            UpdateType.InlineQuery => BotOnInlineQueryReceived(update.InlineQuery!),
-            UpdateType.ChosenInlineResult => BotOnChosenInlineResultReceived(update.ChosenInlineResult!),
+            UpdateType.Message => BotOnMessageReceived(update.Message),
+            // UpdateType.EditedMessage => BotOnMessageReceived(update.EditedMessage!),
+            // UpdateType.CallbackQuery => BotOnCallbackQueryReceived(update.CallbackQuery!),
+            // UpdateType.InlineQuery => BotOnInlineQueryReceived(update.InlineQuery!),
+            // UpdateType.ChosenInlineResult => BotOnChosenInlineResultReceived(update.ChosenInlineResult!),
             _ => UnknownUpdateHandlerAsync(update)
         };
 
@@ -57,12 +71,13 @@ public class HandleUpdateService
 
         var action = message.Text!.Split(' ')[0] switch
         {
+            "/statistics" => GetPrettyStatisticsAsync(message),
             "/inline" => SendInlineKeyboard(_botClient, message),
             "/keyboard" => SendReplyKeyboard(_botClient, message),
             "/remove" => RemoveKeyboard(_botClient, message),
             "/photo" => SendFile(_botClient, message),
             "/request" => RequestContactAndLocation(_botClient, message),
-            _ => Usage(_botClient, message)
+            _ => HelpAsync(message)
         };
         var sentMessage = await action;
         _logger.LogInformation("The message was sent with id: {SentMessageId}", sentMessage.MessageId);
@@ -148,20 +163,22 @@ public class HandleUpdateService
                 "Who or Where are you?",
                 replyMarkup: requestReplyKeyboard);
         }
+        
+    }
 
-        static async Task<Message> Usage(ITelegramBotClient bot, Message message)
-        {
-            const string usage = "Usage:\n" +
-                                 "/inline   - send inline keyboard\n" +
-                                 "/keyboard - send custom keyboard\n" +
-                                 "/remove   - remove custom keyboard\n" +
-                                 "/photo    - send a photo\n" +
-                                 "/request  - request location or contact";
+    private async Task<Message> GetPrettyStatisticsAsync(Message message)
+    {
+        //TODO: handle if we need to include history of matches
 
-            return await bot.SendTextMessageAsync(message.Chat.Id,
-                usage,
-                replyMarkup: new ReplyKeyboardRemove());
-        }
+        var statistics = await _statisticsService.GetPlayerStatisticsAsync(false);
+        var result = $"`{statistics.ToPretty()}`";
+        return await _botClient.SendTextMessageAsync(message.Chat.Id, result, ParseMode.MarkdownV2);
+    }
+    
+    private async Task<Message> HelpAsync(Message message)
+    {
+        var helpText = $"Usage:\n{string.Join('\n', _commands.Select(x => $"/{x.Key,-10} - {x.Value}"))}";
+        return await _botClient.SendTextMessageAsync(message.Chat.Id, helpText, replyMarkup: new ReplyKeyboardRemove());
     }
 
     // Process Inline Keyboard callback data
