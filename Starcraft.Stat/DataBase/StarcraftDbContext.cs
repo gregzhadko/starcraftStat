@@ -16,6 +16,11 @@ public class StarcraftDbContext : DbContext
     public DbSet<Team> Teams { get; set; } = null!;
     public DbSet<Game> Games { get; set; } = null!;
 
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        optionsBuilder.EnableSensitiveDataLogging();
+    }
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Race>()
