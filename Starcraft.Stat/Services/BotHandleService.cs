@@ -1,4 +1,7 @@
-﻿using Telegram.Bot;
+﻿using Starcraft.Stat.Exceptions;
+using Starcraft.Stat.Models;
+using Starcraft.Stat.Models.Requests;
+using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -12,18 +15,22 @@ public class BotHandleService : IBotHandleService
 {
     private readonly ITelegramBotClient _botClient;
     private readonly IStatisticsService _statisticsService;
+    private readonly IGameService _gameService;
     private readonly ILogger<BotHandleService> _logger;
+    private const string AddFormat = "winner1 race winner2 race looser1 race looser2 race";
 
     private readonly IDictionary<string, string> _commands = new Dictionary<string, string>
     {
         ["statistics"] = "Gets the statistics",
+        ["addgame"] = $"Add game in format: {AddFormat}"
     };
 
-    public BotHandleService(ITelegramBotClient botClient, ILogger<BotHandleService> logger, IStatisticsService statisticsService)
+    public BotHandleService(ITelegramBotClient botClient, ILogger<BotHandleService> logger, IStatisticsService statisticsService, IGameService gameService)
     {
         _botClient = botClient;
         _logger = logger;
         _statisticsService = statisticsService;
+        _gameService = gameService;
     }
 
     public async Task HandleAsync(Update update)
@@ -33,6 +40,7 @@ public class BotHandleService : IBotHandleService
             _logger.LogError("Message is empty");
             return;
         }
+
         //TODO: check chat id and prevent to call if from other chats
         _logger.LogInformation("Message {Message} from Chat {ChatId}", update.Message.Text, update.Message.Chat.Id);
         var handler = update.Type switch
@@ -55,10 +63,19 @@ public class BotHandleService : IBotHandleService
         {
             await handler;
         }
+        catch (StarcraftException exception)
+        {
+            await HandleStarcraftExceptionAsync(exception, update.Message.Chat.Id);
+        }
         catch (Exception exception)
         {
             await HandleErrorAsync(exception);
         }
+    }
+
+    private async Task HandleStarcraftExceptionAsync(StarcraftException starcraftException, long chatId)
+    {
+        await _botClient.SendTextMessageAsync(chatId, starcraftException.Message, ParseMode.Markdown);
     }
 
     private async Task BotOnMessageReceived(Message message)
@@ -69,14 +86,10 @@ public class BotHandleService : IBotHandleService
             return;
         }
 
-        var action = message.Text!.Split(' ')[0] switch
+        var action = message.Text!.Split(' ')[0].ToLower() switch
         {
-            "/statistics" => GetPrettyStatisticsAsync(message),
-            "/inline" => SendInlineKeyboard(_botClient, message),
-            "/keyboard" => SendReplyKeyboard(_botClient, message),
-            "/remove" => RemoveKeyboard(_botClient, message),
-            "/photo" => SendFile(_botClient, message),
-            "/request" => RequestContactAndLocation(_botClient, message),
+            "/statistics" => GetPrettyStatisticsAsync(message.Chat.Id),
+            "/addgame" => AddGameAsync(message),
             _ => HelpAsync(message)
         };
         var sentMessage = await action;
@@ -163,18 +176,42 @@ public class BotHandleService : IBotHandleService
                 "Who or Where are you?",
                 replyMarkup: requestReplyKeyboard);
         }
-        
     }
 
-    private async Task<Message> GetPrettyStatisticsAsync(Message message)
+    private async Task<Message> AddGameAsync(Message message)
+    {
+        var a = message.Text!.Split(' ');
+        if (a.Length < 9)
+        {
+            return await _botClient.SendTextMessageAsync(message.Chat.Id, $"Not enough parameters\\. The correct format is `{AddFormat}`", ParseMode.MarkdownV2);
+        }
+        else
+        {
+            var request = new AddGameRequest(
+                new TeamRequest(a[1], a[2], a[3], a[4]),
+                new TeamRequest(a[5], a[6], a[7], a[8]),
+                Winner.Team1,
+                false);
+            var validationResult = await new AddGameRequestValidator().ValidateAsync(request);
+            if (!validationResult.IsValid)
+            {
+                var response = $"Validation errors:\n {string.Join("\n  ", validationResult.Errors.Select(e => e.ErrorMessage))}";
+                return await _botClient.SendTextMessageAsync(message.Chat.Id, response, ParseMode.MarkdownV2);
+            }
+
+            await _gameService.AddGameAsync(request);
+            return await GetPrettyStatisticsAsync(message.Chat.Id);
+        }
+    }
+
+    private async Task<Message> GetPrettyStatisticsAsync(long chatId)
     {
         //TODO: handle if we need to include history of matches
-
         var statistics = await _statisticsService.GetPlayerStatisticsAsync(false);
         var result = $"`{statistics.ToPretty()}`";
-        return await _botClient.SendTextMessageAsync(message.Chat.Id, result, ParseMode.MarkdownV2);
+        return await _botClient.SendTextMessageAsync(chatId, result, ParseMode.MarkdownV2);
     }
-    
+
     private async Task<Message> HelpAsync(Message message)
     {
         var helpText = $"Usage:\n{string.Join('\n', _commands.Select(x => $"/{x.Key,-10} - {x.Value}"))}";
