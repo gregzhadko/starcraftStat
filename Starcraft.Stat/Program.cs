@@ -9,6 +9,8 @@ using Telegram.Bot;
 
 var builder = WebApplication.CreateBuilder(args);
 var botConfig = builder.Configuration.GetSection("BotConfiguration").Get<BotConfiguration>();
+Console.WriteLine($"Token: {botConfig.BotToken}");
+Console.WriteLine($"Host Address: {botConfig.HostAddress}");
 
 var services = builder.Services;
 
