@@ -17,8 +17,8 @@ public class GameService : IGameService
 
     public async Task AddGameAsync(AddGameRequest request)
     {
-        var races = (await _context.Races.ToArrayAsync());
-        var players = (await _context.Players.ToArrayAsync());
+        var races = await _context.Races.ToArrayAsync();
+        var players = await _context.Players.ToArrayAsync();
 
         var team1 = await GetExistingTeamAsync(BuildTeam(request.Team1, races, players));
         var team2 = await GetExistingTeamAsync(BuildTeam(request.Team2, races, players));
@@ -48,13 +48,13 @@ public class GameService : IGameService
         {
             throw new StarcraftException($"There is no player with '{request.Player1}' name");
         }
-        
+
         var player2Id = players.FirstOrDefault(r => r.Name.StartsWith(request.Player2, StringComparison.InvariantCultureIgnoreCase))?.Id;
         if (player2Id == null)
         {
             throw new StarcraftException($"There is no player with '{request.Player2}' name");
         }
-        
+
         return new Team
         {
             Player1Id = player1Id.Value,

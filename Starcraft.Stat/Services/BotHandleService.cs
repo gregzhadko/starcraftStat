@@ -13,17 +13,18 @@ namespace Starcraft.Stat.Services;
 
 public class BotHandleService : IBotHandleService
 {
-    private readonly ITelegramBotClient _botClient;
-    private readonly IStatisticsService _statisticsService;
-    private readonly IGameService _gameService;
-    private readonly ILogger<BotHandleService> _logger;
     private const string AddFormat = "winner1 race winner2 race looser1 race looser2 race";
+    private readonly ITelegramBotClient _botClient;
 
     private readonly IDictionary<string, string> _commands = new Dictionary<string, string>
     {
         ["statistics"] = "Gets the statistics",
         ["addgame"] = $"Add game in format: {AddFormat}"
     };
+
+    private readonly IGameService _gameService;
+    private readonly ILogger<BotHandleService> _logger;
+    private readonly IStatisticsService _statisticsService;
 
     public BotHandleService(ITelegramBotClient botClient, ILogger<BotHandleService> logger, IStatisticsService statisticsService, IGameService gameService)
     {
@@ -185,23 +186,21 @@ public class BotHandleService : IBotHandleService
         {
             return await _botClient.SendTextMessageAsync(message.Chat.Id, $"Not enough parameters\\. The correct format is `{AddFormat}`", ParseMode.MarkdownV2);
         }
-        else
-        {
-            var request = new AddGameRequest(
-                new TeamRequest(a[1], a[2], a[3], a[4]),
-                new TeamRequest(a[5], a[6], a[7], a[8]),
-                Winner.Team1,
-                false);
-            var validationResult = await new AddGameRequestValidator().ValidateAsync(request);
-            if (!validationResult.IsValid)
-            {
-                var response = $"Validation errors:\n {string.Join("\n  ", validationResult.Errors.Select(e => e.ErrorMessage))}";
-                return await _botClient.SendTextMessageAsync(message.Chat.Id, response, ParseMode.MarkdownV2);
-            }
 
-            await _gameService.AddGameAsync(request);
-            return await GetPrettyStatisticsAsync(message.Chat.Id);
+        var request = new AddGameRequest(
+            new TeamRequest(a[1], a[2], a[3], a[4]),
+            new TeamRequest(a[5], a[6], a[7], a[8]),
+            Winner.Team1,
+            false);
+        var validationResult = await new AddGameRequestValidator().ValidateAsync(request);
+        if (!validationResult.IsValid)
+        {
+            var response = $"Validation errors:\n {string.Join("\n  ", validationResult.Errors.Select(e => e.ErrorMessage))}";
+            return await _botClient.SendTextMessageAsync(message.Chat.Id, response, ParseMode.MarkdownV2);
         }
+
+        await _gameService.AddGameAsync(request);
+        return await GetPrettyStatisticsAsync(message.Chat.Id);
     }
 
     private async Task<Message> GetPrettyStatisticsAsync(long chatId)

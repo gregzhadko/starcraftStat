@@ -20,7 +20,7 @@ public class StarcraftDbContext : DbContext
     {
         optionsBuilder.EnableSensitiveDataLogging();
     }
-    
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Race>()
