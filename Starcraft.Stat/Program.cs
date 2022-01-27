@@ -7,19 +7,20 @@ using Starcraft.Stat.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<StarcraftDbContext>(options =>
+var services = builder.Services;
+services.AddDbContext<StarcraftDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("StarcraftDbContext")));
 
-builder.Services.AddScoped<IStatisticsService, StatisticsService>();
-builder.Services.AddScoped<IGameService, GameService>();
+services.AddScoped<IStatisticsService, StatisticsService>();
+services.AddScoped<IGameService, GameService>();
 
 // Add services to the container.
 
-builder.Services.AddControllers()
+services.AddControllers()
     .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<AddGameRequestValidator>());
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+services.AddEndpointsApiExplorer();
+services.AddSwaggerGen();
 
 var app = builder.Build();
 
