@@ -213,7 +213,7 @@ public class BotHandleService : IBotHandleService
 
     private async Task<Message> HelpAsync(Message message)
     {
-        var helpText = $"Usage:\n{string.Join('\n', _commands.Select(x => $"/{x.Key,-10} - {x.Value}"))}";
+        var helpText = $"Usage:\n{string.Join('\n', _commands.Select(x => $"/{x.Key} {x.Value}"))}";
         return await _botClient.SendTextMessageAsync(message.Chat.Id, helpText, replyMarkup: new ReplyKeyboardRemove());
     }
 
