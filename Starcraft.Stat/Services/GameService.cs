@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Starcraft.Stat.DataBase;
 using Starcraft.Stat.DbModels;
+using Starcraft.Stat.Exceptions;
 using Starcraft.Stat.Models.Requests;
 
 namespace Starcraft.Stat.Services;
@@ -16,8 +17,8 @@ public class GameService : IGameService
 
     public async Task AddGameAsync(AddGameRequest request)
     {
-        var races = (await _context.Races.ToArrayAsync()).ToDictionary(r => r.Name, r => r);
-        var players = (await _context.Players.ToArrayAsync()).ToDictionary(p => p.Name, p => p);
+        var races = await _context.Races.ToArrayAsync();
+        var players = await _context.Players.ToArrayAsync();
 
         var team1 = await GetExistingTeamAsync(BuildTeam(request.Team1, races, players));
         var team2 = await GetExistingTeamAsync(BuildTeam(request.Team2, races, players));
@@ -28,15 +29,40 @@ public class GameService : IGameService
         await _context.SaveChangesAsync();
     }
 
-    private static Team BuildTeam(TeamRequest request, IReadOnlyDictionary<string, Race> races,
-        IReadOnlyDictionary<string, Player> players) =>
-        new Team
+    private static Team BuildTeam(TeamRequest request, IReadOnlyCollection<Race> races, IReadOnlyCollection<Player> players)
+    {
+        var race1Id = races.FirstOrDefault(r => r.Name.StartsWith(request.Race1, StringComparison.InvariantCultureIgnoreCase))?.Name;
+        if (race1Id == null)
         {
-            Player1Id = players[request.Player1].Id,
-            Race1Id = races[request.Race1].Name,
-            Player2Id = players[request.Player2].Id,
-            Race2Id = races[request.Race2].Name
+            throw new StarcraftException($"There is no race with '{request.Race1}' name");
+        }
+
+        var race2Id = races.FirstOrDefault(r => r.Name.StartsWith(request.Race2, StringComparison.InvariantCultureIgnoreCase))?.Name;
+        if (race2Id == null)
+        {
+            throw new StarcraftException($"There is no race with '{request.Race2}' name");
+        }
+
+        var player1Id = players.FirstOrDefault(r => r.Name.StartsWith(request.Player1, StringComparison.InvariantCultureIgnoreCase))?.Id;
+        if (player1Id == null)
+        {
+            throw new StarcraftException($"There is no player with '{request.Player1}' name");
+        }
+
+        var player2Id = players.FirstOrDefault(r => r.Name.StartsWith(request.Player2, StringComparison.InvariantCultureIgnoreCase))?.Id;
+        if (player2Id == null)
+        {
+            throw new StarcraftException($"There is no player with '{request.Player2}' name");
+        }
+
+        return new Team
+        {
+            Player1Id = player1Id.Value,
+            Race1Id = race1Id,
+            Player2Id = player2Id.Value,
+            Race2Id = race2Id
         };
+    }
 
     private async Task<Team> GetExistingTeamAsync(Team team)
     {

@@ -12,9 +12,7 @@
     "Starcraft.Stat": {
       "commandName": "Project",
       "dotnetRunMessages": true,
-      "launchBrowser": true,
-      "launchUrl": "swagger",
-      "applicationUrl": "https://localhost:7288;http://localhost:5288",
+      "applicationUrl": "https://localhost:7288;http://localhost:8443",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
