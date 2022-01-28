@@ -13,7 +13,7 @@ namespace Starcraft.Stat.Services;
 
 public class BotHandleService : IBotHandleService
 {
-    private const string AddFormat = "winner1 race winner2 race looser1 race looser2 race";
+    private const string AddFormat = "winner1 race winner2 race loser1 race loser2 race";
     private readonly ITelegramBotClient _botClient;
 
     private readonly IDictionary<string, string> _commands = new Dictionary<string, string>
