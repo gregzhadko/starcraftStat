@@ -12,7 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 var botConfig = builder.Configuration.GetSection("BotConfiguration").Get<BotConfiguration>();
 Console.WriteLine($"Token: {botConfig.BotToken}");
 Console.WriteLine($"Host Address: {botConfig.HostAddress}");
-Console.WriteLine($"Host Address: {botConfig.AllowedChatsString}");
+Console.WriteLine($"AllowedChatsString: {botConfig.AllowedChatsString}");
 
 var services = builder.Services;
 
