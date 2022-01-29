@@ -25,25 +25,28 @@ public class BotHandleService : IBotHandleService
     private readonly IGameService _gameService;
     private readonly ILogger<BotHandleService> _logger;
     private readonly IStatisticsService _statisticsService;
+    private readonly BotConfiguration _botConfig;
 
-    public BotHandleService(ITelegramBotClient botClient, ILogger<BotHandleService> logger, IStatisticsService statisticsService, IGameService gameService)
+    public BotHandleService(ITelegramBotClient botClient, ILogger<BotHandleService> logger, IStatisticsService statisticsService, IGameService gameService, IConfiguration configuration)
     {
         _botClient = botClient;
         _logger = logger;
         _statisticsService = statisticsService;
         _gameService = gameService;
+        _botConfig = configuration.GetSection("BotConfiguration").Get<BotConfiguration>();
     }
 
     public async Task HandleAsync(Update update)
     {
         if (update.Message == null)
         {
-            _logger.LogError("Message is empty");
+            _logger.LogError("Message is null");
             return;
         }
 
         //TODO: check chat id and prevent to call if from other chats
-        _logger.LogInformation("Message {Message} from Chat {ChatId}", update.Message.Text, update.Message.Chat.Id);
+        var chatId = update.Message.Chat.Id;
+        _logger.LogInformation("Message {Message} from chat {ChatId}", update.Message.Text, chatId);
         var handler = update.Type switch
         {
             // UpdateType.Unknown:
@@ -66,7 +69,7 @@ public class BotHandleService : IBotHandleService
         }
         catch (StarcraftException exception)
         {
-            await HandleStarcraftExceptionAsync(exception, update.Message.Chat.Id);
+            await HandleStarcraftExceptionAsync(exception, chatId);
         }
         catch (Exception exception)
         {
@@ -86,7 +89,7 @@ public class BotHandleService : IBotHandleService
         {
             return;
         }
-
+        
         var action = message.Text!.Split(' ')[0].ToLower() switch
         {
             "/statistics" => GetPrettyStatisticsAsync(message.Chat.Id),
@@ -181,6 +184,12 @@ public class BotHandleService : IBotHandleService
 
     private async Task<Message> AddGameAsync(Message message)
     {
+        if (!_botConfig.AllowedChats.Contains(message.Chat.Id))
+        {
+            _logger.LogWarning("Someone tried to send {Message} from chat {Chat}, but we didn't allowed it", message.Text, message.Chat.Id);
+            return await _botClient.SendTextMessageAsync(message.Chat.Id, "Only Grigory and tstk chat can add games to the statistics", ParseMode.Markdown);
+        }
+        
         var a = message.Text!.Split(' ');
         if (a.Length < 9)
         {
