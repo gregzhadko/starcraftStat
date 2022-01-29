@@ -7,18 +7,23 @@ services:
     build: .
     image: gregzhadko/starcraft:latest
     ports:
-      - "80:80"
+      - "5000:80"
     depends_on:
       - postgres
     networks:
       - starcraft-docker
-  
+    environment:
+      ConnectionStrings__StarcraftDbContext: ${ConnectionStrings__StarcraftDbContext}
+      BotConfiguration__HostAddress: ${BotConfiguration__HostAddress}
+      BotConfiguration__BotToken: ${BotConfiguration__BotToken}
+      BotConfiguration__AllowedChatsString: ${BotConfiguration__AllowedChatsString}
+
   postgres:
     container_name: 'postgres'
     image: postgres:alpine
     restart: always
     environment:
-      POSTGRES_PASSWORD: pp3gpsOAHK
+      POSTGRES_PASSWORD: ${PostgresPasswrod}
     ports:
       - "5432:5432"
     volumes:
@@ -31,4 +36,4 @@ volumes:
 
 networks:
   starcraft-docker:
-    driver: bridge 
+    driver: bridge
