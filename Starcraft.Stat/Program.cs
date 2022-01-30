@@ -46,6 +46,7 @@ services.AddControllers()
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
+services.AddHostedService<MigrationsService>();
 
 var app = builder.Build();
 
@@ -87,24 +88,4 @@ app.UseEndpoints(endpoints =>
 });
 
 app.MapControllers();
-
-//TODO: make it async
-
-ApplyMigrations(app);
-
 app.Run();
-
-void ApplyMigrations(IHost host)
-{
-    Console.WriteLine("Start migration");
-    using var scope = host.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<StarcraftDbContext>();
-
-    Console.WriteLine("Ensure created...");
-    db.Database.EnsureCreated();
-    var races = db.Races.ToArray();
-    foreach (var race in races)
-    {
-        Console.WriteLine(race.Name);
-    }
-}
