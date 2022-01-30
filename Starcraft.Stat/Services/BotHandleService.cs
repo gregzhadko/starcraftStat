@@ -90,12 +90,21 @@ public class BotHandleService : IBotHandleService
             return;
         }
         
-        var action = message.Text!.Split(' ')[0].ToLower() switch
+        Task<Message>? action;
+        var command = message.Text!.Split(' ')[0].ToLower();
+        if (command.StartsWith("/statistics@"))
         {
-            "/statistics" => GetPrettyStatisticsAsync(message.Chat.Id),
-            "/addgame" => AddGameAsync(message),
-            _ => HelpAsync(message)
-        };
+            action = GetPrettyStatisticsAsync(message.Chat.Id);
+        }
+        else if (command.StartsWith("/addgame@"))
+        {
+            action = AddGameAsync(message);
+        }
+        else
+        {
+            action = HelpAsync(message);
+        }
+
         var sentMessage = await action;
         _logger.LogInformation("The message was sent with id: {SentMessageId}", sentMessage.MessageId);
 
