@@ -92,11 +92,11 @@ public class BotHandleService : IBotHandleService
         
         Task<Message>? action;
         var command = message.Text!.Split(' ')[0].ToLower();
-        if (command.StartsWith("/statistics@"))
+        if (command.StartsWith("/statistics"))
         {
             action = GetPrettyStatisticsAsync(message.Chat.Id);
         }
-        else if (command.StartsWith("/addgame@"))
+        else if (command.StartsWith("/addgame"))
         {
             action = AddGameAsync(message);
         }
