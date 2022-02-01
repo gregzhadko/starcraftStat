@@ -15,6 +15,7 @@ public class BotHandleService : IBotHandleService
 {
     private const string AddFormat = "winner1 race winner2 race loser1 race loser2 race";
     private readonly ITelegramBotClient _botClient;
+    private readonly BotConfiguration _botConfig;
 
     private readonly IDictionary<string, string> _commands = new Dictionary<string, string>
     {
@@ -25,7 +26,6 @@ public class BotHandleService : IBotHandleService
     private readonly IGameService _gameService;
     private readonly ILogger<BotHandleService> _logger;
     private readonly IStatisticsService _statisticsService;
-    private readonly BotConfiguration _botConfig;
 
     public BotHandleService(ITelegramBotClient botClient, ILogger<BotHandleService> logger, IStatisticsService statisticsService, IGameService gameService, IConfiguration configuration)
     {
@@ -89,7 +89,7 @@ public class BotHandleService : IBotHandleService
         {
             return;
         }
-        
+
         Task<Message>? action;
         var command = message.Text!.Split(' ')[0].ToLower();
         if (command.StartsWith("/statistics"))
@@ -198,7 +198,7 @@ public class BotHandleService : IBotHandleService
             _logger.LogWarning("Someone tried to send {Message} from chat {Chat}, but we didn't allowed it", message.Text, message.Chat.Id);
             return await _botClient.SendTextMessageAsync(message.Chat.Id, "Only Grigory and tstk chat can add games to the statistics", ParseMode.Markdown);
         }
-        
+
         var a = message.Text!.Split(' ');
         if (a.Length < 9)
         {

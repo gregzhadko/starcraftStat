@@ -1,6 +1,4 @@
-﻿using System.Runtime.Serialization;
-
-namespace Starcraft.Stat.Models;
+﻿namespace Starcraft.Stat.Models;
 
 public class BotConfiguration
 {
@@ -8,6 +6,7 @@ public class BotConfiguration
     public string BotToken { get; init; } = null!;
     public string HostAddress { get; init; } = null!;
     public string AllowedChatsString { get; init; } = null!;
+
     public long[] AllowedChats
     {
         get
@@ -16,12 +15,12 @@ public class BotConfiguration
             {
                 return _allowedChats;
             }
-            
+
             if (string.IsNullOrWhiteSpace(AllowedChatsString))
             {
                 return Array.Empty<long>();
             }
-            
+
             return _allowedChats = AllowedChatsString.Split(',').Select(s => Convert.ToInt64(s)).ToArray();
         }
     }
