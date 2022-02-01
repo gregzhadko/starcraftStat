@@ -11,6 +11,7 @@ public class MigrationsService : BackgroundService
     {
         _serviceProvider = serviceProvider;
     }
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         Console.WriteLine("Start migration");
