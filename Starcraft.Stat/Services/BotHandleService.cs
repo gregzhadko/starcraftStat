@@ -217,6 +217,8 @@ public class BotHandleService : IBotHandleService
         }
 
         await _gameService.AddGameAsync(request);
+        var number = await _gameService.GetGamesCountAsync();
+        await _botClient.SendTextMessageAsync(message.Chat.Id, $"Game №{number} is added", ParseMode.MarkdownV2);
         return await GetPrettyStatisticsAsync(message.Chat.Id);
     }
 

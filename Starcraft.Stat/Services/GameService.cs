@@ -29,6 +29,8 @@ public class GameService : IGameService
         await _context.SaveChangesAsync();
     }
 
+    public Task<int> GetGamesCountAsync() => _context.Games.CountAsync();
+
     private static Team BuildTeam(TeamRequest request, IReadOnlyCollection<Race> races, IReadOnlyCollection<Player> players)
     {
         var race1Id = races.FirstOrDefault(r => r.Name.StartsWith(request.Race1, StringComparison.InvariantCultureIgnoreCase))?.Name;
