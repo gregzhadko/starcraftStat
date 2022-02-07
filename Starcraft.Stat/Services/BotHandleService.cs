@@ -198,15 +198,15 @@ public class BotHandleService : IBotHandleService
             return await _botClient.SendTextMessageAsync(message.Chat.Id, "Only Grigory and tstk chat can add games to the statistics", ParseMode.Markdown);
         }
 
-        var a = message.Text!.Split(' ');
-        if (a.Length < 9)
+        var s = message.Text!.Split(' ').Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
+        if (s.Length < 9)
         {
             return await _botClient.SendTextMessageAsync(message.Chat.Id, $"Not enough parameters\\. The correct format is `{AddFormat}`", ParseMode.MarkdownV2);
         }
 
         var request = new AddGameRequest(
-            new TeamRequest(a[1], a[2], a[3], a[4]),
-            new TeamRequest(a[5], a[6], a[7], a[8]),
+            new TeamRequest(s[1], s[2], s[3], s[4]),
+            new TeamRequest(s[5], s[6], s[7], s[8]),
             Winner.Team1,
             false);
         var validationResult = await new AddGameRequestValidator().ValidateAsync(request);
