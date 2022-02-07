@@ -47,7 +47,6 @@ public record GameResponse : IPretty
     public string LoserPlayer2 { get; }
 
     public string LoserRace2 { get; }
-    public static string Header => "History:";
 
     public string ToPretty() => $"{GetPretty(WinnerPlayer1, WinnerRace1)} {GetPretty(WinnerPlayer2, WinnerRace2)} 1 : 0  {GetPretty(LoserPlayer1, LoserRace1)} {GetPretty(LoserPlayer2, LoserRace2)}";
 

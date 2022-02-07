@@ -32,6 +32,7 @@ public class StatisticsService : IStatisticsService
         var playersDictionary = new Dictionary<string, WinLosses>();
         var teamsDictionary = new Dictionary<(string player1, string player2), WinLosses>();
         var raceDictionary = new Dictionary<(string race1, string race2), WinLosses>();
+        var playerRaceDictionary = new Dictionary<(string player, string race), WinLosses>();
         var gameResponse = new List<GameResponse>(games.Length);
         foreach (var game in games)
         {
@@ -46,6 +47,11 @@ public class StatisticsService : IStatisticsService
             AddOrIncrementWinnerLossesDictionary(teamsDictionary, (winners[0], winners[1]), true);
             AddOrIncrementWinnerLossesDictionary(teamsDictionary, (losers[0], losers[1]), false);
 
+            AddOrIncrementWinnerLossesDictionary(playerRaceDictionary, (winnerTeam.Player1.Name, winnerTeam.Race1Id), true);
+            AddOrIncrementWinnerLossesDictionary(playerRaceDictionary, (winnerTeam.Player2.Name, winnerTeam.Race2Id), true);
+            AddOrIncrementWinnerLossesDictionary(playerRaceDictionary, (loserTeam.Player1.Name, loserTeam.Race1Id), false);
+            AddOrIncrementWinnerLossesDictionary(playerRaceDictionary, (loserTeam.Player2.Name, loserTeam.Race2Id), false);
+            
             FillRacesDictionary(raceDictionary, winnerTeam, loserTeam);
 
             if (showHistory)
@@ -73,7 +79,13 @@ public class StatisticsService : IStatisticsService
             .OrderByDescending(r => r.WinRate)
             .ToArray();
 
-        return new StatisticsResponse(playersStat, teamStat, racesStat, gameResponse);
+        var playerRaceStat = playerRaceDictionary
+            .Select(kv => new PlayerRaceResponse(kv.Key.player, kv.Key.race, kv.Value.Wins, kv.Value.Losses, 100 * (double)kv.Value.Wins / (kv.Value.Losses + kv.Value.Wins)))
+            .OrderByDescending(r => r.WinRate)
+            .ToArray();
+            
+
+        return new StatisticsResponse(playersStat, teamStat, racesStat, gameResponse, playerRaceStat);
     }
 
     private static void FillRacesDictionary(IDictionary<(string race1, string race2), WinLosses> raceDictionary, Team winnerTeam, Team loserTeam)
