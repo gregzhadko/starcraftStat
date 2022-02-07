@@ -44,7 +44,6 @@ public class BotHandleService : IBotHandleService
             return;
         }
 
-        //TODO: check chat id and prevent to call if from other chats
         var chatId = update.Message.Chat.Id;
         _logger.LogInformation("Message {Message} from chat {ChatId}", update.Message.Text, chatId);
         var handler = update.Type switch
@@ -73,7 +72,7 @@ public class BotHandleService : IBotHandleService
         }
         catch (Exception exception)
         {
-            await HandleErrorAsync(exception);
+            await HandleErrorAsync(chatId, exception);
         }
     }
 
@@ -248,7 +247,7 @@ public class BotHandleService : IBotHandleService
         return Task.CompletedTask;
     }
 
-    private Task HandleErrorAsync(Exception exception)
+    private async Task HandleErrorAsync(long chatIt, Exception exception)
     {
         var errorMessage = exception switch
         {
@@ -257,7 +256,7 @@ public class BotHandleService : IBotHandleService
         };
 
         _logger.LogInformation("HandleError: {ErrorMessage}", errorMessage);
-        return Task.CompletedTask;
+        await _botClient.SendTextMessageAsync(chatIt, $"Грег наговнокодил: {exception.Message}");
     }
 
     #region Inline Mode
