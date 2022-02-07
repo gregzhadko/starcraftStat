@@ -3,9 +3,9 @@
 namespace Starcraft.Stat.Models.Responses;
 
 public record StatisticsResponse(PlayerStatisticsResponse[] PlayerStatistics, TeamStatisticsResponse[] TeamStatistics,
-    RacesStatisticsResponse[] RacesStatistics, IReadOnlyCollection<GameResponse> Games) : IPretty
+    RacesStatisticsResponse[] RacesStatistics, IReadOnlyCollection<GameResponse> Games, PlayerRaceResponse[] PlayerRaceResponses) : IPretty
 {
-    public static string Header => "Statistics";
+    private static string Header => "Statistics";
 
     public string ToPretty()
     {
@@ -36,9 +36,15 @@ public record StatisticsResponse(PlayerStatisticsResponse[] PlayerStatistics, Te
 
         result.AppendLine();
 
+        result.AppendLine(PlayerRaceResponse.Header);
+        foreach (var playerRaceResponse in PlayerRaceResponses)
+        {
+            result.AppendLine(playerRaceResponse.ToPretty());
+        }
+
         if (Games.Count > 0)
         {
-            result.AppendLine(GameResponse.Header);
+            result.AppendLine($"History (total {Games.Count}):");
             foreach (var game in Games)
             {
                 result.AppendLine(game.ToPretty());

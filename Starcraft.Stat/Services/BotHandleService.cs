@@ -224,7 +224,6 @@ public class BotHandleService : IBotHandleService
 
     private async Task<Message> GetPrettyStatisticsAsync(long chatId)
     {
-        //TODO: handle if we need to include history of matches
         var statistics = await _statisticsService.GetPlayerStatisticsAsync(false);
         var result = $"`{statistics.ToPretty()}`";
         return await _botClient.SendTextMessageAsync(chatId, result, ParseMode.MarkdownV2);
