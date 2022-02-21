@@ -99,9 +99,13 @@ public class BotHandleService : IBotHandleService
         {
             action = AddGameAsync(message);
         }
-        else
+        else if(command.StartsWith("/help"))
         {
             action = HelpAsync(message);
+        }
+        else
+        {
+            return;
         }
 
         var sentMessage = await action;
@@ -192,7 +196,8 @@ public class BotHandleService : IBotHandleService
 
     private async Task<Message> AddGameAsync(Message message)
     {
-        if (!_botConfig.AllowedChats.Contains(message.Chat.Id))
+        var allowedChats = _botConfig.AllowedChats;
+        if (allowedChats.Length > 0 && !allowedChats.Contains(message.Chat.Id))
         {
             _logger.LogWarning("Someone tried to send {Message} from chat {Chat}, but we didn't allowed it", message.Text, message.Chat.Id);
             return await _botClient.SendTextMessageAsync(message.Chat.Id, "Only Grigory and tstk chat can add games to the statistics", ParseMode.Markdown);
