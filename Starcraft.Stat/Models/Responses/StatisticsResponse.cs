@@ -13,7 +13,7 @@ public record StatisticsResponse(PlayerStatisticsResponse[] PlayerStatistics, Te
         result.AppendLine(Header);
         result.AppendLine();
         result.AppendLine(PlayerStatisticsResponse.Header);
-        foreach (var playerStatistic in PlayerStatistics)
+        foreach (var playerStatistic in PlayerStatistics.OrderByDescending(x => x, new WinLoseComparer()))
         {
             result.AppendLine(playerStatistic.ToPretty());
         }
@@ -21,7 +21,7 @@ public record StatisticsResponse(PlayerStatisticsResponse[] PlayerStatistics, Te
         result.AppendLine();
 
         result.AppendLine(TeamStatisticsResponse.Header);
-        foreach (var teamStatistic in TeamStatistics)
+        foreach (var teamStatistic in TeamStatistics.OrderByDescending(x => x, new WinLoseComparer()))
         {
             result.AppendLine(teamStatistic.ToPretty());
         }
@@ -29,7 +29,7 @@ public record StatisticsResponse(PlayerStatisticsResponse[] PlayerStatistics, Te
         result.AppendLine();
 
         result.AppendLine(RacesStatisticsResponse.Header);
-        foreach (var racesStatistic in RacesStatistics)
+        foreach (var racesStatistic in RacesStatistics.OrderByDescending(x => x, new WinLoseComparer()))
         {
             result.AppendLine(racesStatistic.ToPretty());
         }
@@ -37,7 +37,7 @@ public record StatisticsResponse(PlayerStatisticsResponse[] PlayerStatistics, Te
         result.AppendLine();
 
         result.AppendLine(PlayerRaceResponse.Header);
-        foreach (var playerRaceResponse in PlayerRaceResponses)
+        foreach (var playerRaceResponse in PlayerRaceResponses.OrderByDescending(x => x, new WinLoseComparer()))
         {
             result.AppendLine(playerRaceResponse.ToPretty());
         }
@@ -46,7 +46,7 @@ public record StatisticsResponse(PlayerStatisticsResponse[] PlayerStatistics, Te
         {
             result.AppendLine();
             result.AppendLine(TeamPlayerRaceResponse.Header);
-            foreach (var tpr in TeamPlayerRaceResponses)
+            foreach (var tpr in TeamPlayerRaceResponses.OrderByDescending(x => x, new WinLoseComparer()))
             {
                 result.AppendLine(tpr.ToPretty());
             }

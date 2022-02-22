@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Starcraft.Stat.DataBase;
+using Starcraft.Stat.DbModels;
 using Starcraft.Stat.Models;
 using Starcraft.Stat.Models.Responses;
 
@@ -16,17 +17,7 @@ public class StatisticsService : IStatisticsService
 
     public async Task<StatisticsResponse> GetPlayerStatisticsAsync(bool showHistory, bool showTeamPlayerRaceStatistics)
     {
-        var games = await _context.Games
-            .Include(g => g.Team1.Player1)
-            .Include(g => g.Team1.Race1)
-            .Include(g => g.Team1.Player2)
-            .Include(g => g.Team1.Race2)
-            .Include(g => g.Team2.Player1)
-            .Include(g => g.Team2.Race1)
-            .Include(g => g.Team2.Player2)
-            .Include(g => g.Team2.Race2)
-            .OrderByDescending(g => g.Date)
-            .ToArrayAsync();
+        var games = await LoadFullGamesAsync();
 
         var playersDictionary = new Dictionary<string, WinLosses>();
         var teamsDictionary = new Dictionary<(string player1, string player2), WinLosses>();
@@ -39,8 +30,8 @@ public class StatisticsService : IStatisticsService
             var (winnerTeam, loserTeam) = game.Winner == Winner.Team1 ? (game.Team1.ToShort(), game.Team2.ToShort()) : (game.Team2.ToShort(), game.Team1.ToShort());
             AddOrIncrementWinnerLossesDictionary(playersDictionary, winnerTeam.Player1, true);
             AddOrIncrementWinnerLossesDictionary(playersDictionary, winnerTeam.Player2, true);
-            AddOrIncrementWinnerLossesDictionary(playersDictionary,  loserTeam.Player1, false);
-            AddOrIncrementWinnerLossesDictionary(playersDictionary,  loserTeam.Player2, false);
+            AddOrIncrementWinnerLossesDictionary(playersDictionary, loserTeam.Player1, false);
+            AddOrIncrementWinnerLossesDictionary(playersDictionary, loserTeam.Player2, false);
 
             AddOrIncrementWinnerLossesDictionary(teamsDictionary, (winnerTeam.Player1, winnerTeam.Player2), true);
             AddOrIncrementWinnerLossesDictionary(teamsDictionary, (loserTeam.Player1, loserTeam.Player2), false);
@@ -55,65 +46,63 @@ public class StatisticsService : IStatisticsService
                 AddOrIncrementWinnerLossesDictionary(teamPlayerRaceDictionary, (winnerTeam.Player1, winnerTeam.Race1, winnerTeam.Player2, winnerTeam.Race2), true);
                 AddOrIncrementWinnerLossesDictionary(teamPlayerRaceDictionary, (loserTeam.Player1, loserTeam.Race1, loserTeam.Player2, loserTeam.Race2), false);
             }
-            
+
             FillRacesDictionary(raceDictionary, winnerTeam, loserTeam);
-            
+
             if (showHistory)
             {
                 gameResponse.Add(new GameResponse(game));
             }
         }
 
-        var playersStat = GetPlayersStat(playersDictionary);
-        var teamStat = GetTeamStat(teamsDictionary);
-        var racesStat = GetRaceStat(raceDictionary);
-        var playerRaceStat = GetPlayerRaceStat(playerRaceDictionary);
-        var teamPlayerRace = GetTeamPlayerRaceStat(teamPlayerRaceDictionary);
-
-        return new StatisticsResponse(playersStat, teamStat, racesStat, gameResponse, playerRaceStat, teamPlayerRace);
+        return BuildStatisticsResponse(playersDictionary, teamsDictionary, raceDictionary, playerRaceDictionary, teamPlayerRaceDictionary, gameResponse);
     }
 
-    private static PlayerRaceResponse[] GetPlayerRaceStat(Dictionary<(string player, string race), WinLosses> dict)
+    private Task<Game[]> LoadFullGamesAsync()
     {
-        return dict
-            .Select(kv => new PlayerRaceResponse(kv.Key.player, kv.Key.race, kv.Value.Wins, kv.Value.Losses, 100 * (double)kv.Value.Wins / (kv.Value.Losses + kv.Value.Wins)))
-            .OrderByDescending(r => r.WinRate)
-            .ThenByDescending(r => (r.Losses + r.Wins))
+        return _context.Games
+            .Include(g => g.Team1.Player1)
+            .Include(g => g.Team1.Race1)
+            .Include(g => g.Team1.Player2)
+            .Include(g => g.Team1.Race2)
+            .Include(g => g.Team2.Player1)
+            .Include(g => g.Team2.Race1)
+            .Include(g => g.Team2.Player2)
+            .Include(g => g.Team2.Race2)
+            .OrderByDescending(g => g.Date)
+            .ToArrayAsync();
+    }
+
+    private static StatisticsResponse BuildStatisticsResponse(Dictionary<string, WinLosses> playersDictionary, Dictionary<(string player1, string player2), WinLosses> teamsDictionary,
+        Dictionary<(string race1, string race2), WinLosses> raceDictionary, Dictionary<(string player, string race), WinLosses> playerRaceDictionary,
+        Dictionary<(string player1, string race1, string player2, string race2), WinLosses> teamPlayerRaceDictionary, List<GameResponse> gameResponse)
+    {
+        var playersStat = playersDictionary
+            .Select(kv => new PlayerStatisticsResponse(kv.Key, kv.Value.Wins, kv.Value.Losses, 100 * (double)kv.Value.Wins / (kv.Value.Losses + kv.Value.Wins)))
             .ToArray();
-    }
-
-    private static RacesStatisticsResponse[] GetRaceStat(Dictionary<(string race1, string race2), WinLosses> dict)
-    {
-        return dict
+        
+        var teamStat = teamsDictionary
+            .Select(kv => new TeamStatisticsResponse(kv.Key.player1, kv.Key.player2, kv.Value.Wins, kv.Value.Losses, 100 * (double)kv.Value.Wins / (kv.Value.Losses + kv.Value.Wins)))
+            .ToArray();
+        
+        var racesStat = raceDictionary
             .Select(kv =>
             {
                 var ((race1, race2), value) = kv;
                 return new RacesStatisticsResponse(race1, race2, value.Wins, value.Losses, 100 * (double)value.Wins / (value.Losses + value.Wins));
             })
-            .OrderByDescending(r => r.WinRate)
-            .ThenByDescending(r => (r.Losses + r.Wins))
             .ToArray();
+        
+        var playerRaceStat = playerRaceDictionary
+            .Select(kv => new PlayerRaceResponse(kv.Key.player, kv.Key.race, kv.Value.Wins, kv.Value.Losses, 100 * (double)kv.Value.Wins / (kv.Value.Losses + kv.Value.Wins)))
+            .ToArray();
+        
+        var teamPlayerRace = GetTeamPlayerRaceStat(teamPlayerRaceDictionary);
+
+        return new StatisticsResponse(playersStat, teamStat, racesStat, gameResponse, playerRaceStat, teamPlayerRace);
     }
 
-    private static TeamStatisticsResponse[] GetTeamStat(Dictionary<(string player1, string player2), WinLosses> dict)
-    {
-        return dict
-            .Select(kv => new TeamStatisticsResponse(kv.Key.player1, kv.Key.player2, kv.Value.Wins, kv.Value.Losses, 100 * (double)kv.Value.Wins / (kv.Value.Losses + kv.Value.Wins)))
-            .OrderByDescending(r => r.Wins)
-            .ThenByDescending(r => (r.Losses + r.Wins))
-            .ToArray();
-    }
-
-    private static PlayerStatisticsResponse[] GetPlayersStat(Dictionary<string, WinLosses> dict)
-    {
-        return dict
-            .Select(kv => new PlayerStatisticsResponse(kv.Key, kv.Value.Wins, kv.Value.Losses, 100 * (double)kv.Value.Wins / (kv.Value.Losses + kv.Value.Wins)))
-            .OrderByDescending(r => r.Wins)
-            .ThenByDescending(r => (r.Losses + r.Wins))
-            .ToArray();
-    }
-
-    private TeamPlayerRaceResponse[] GetTeamPlayerRaceStat(Dictionary<(string player1, string race1, string player2, string race2), WinLosses> dict)
+    private static TeamPlayerRaceResponse[] GetTeamPlayerRaceStat(Dictionary<(string player1, string race1, string player2, string race2), WinLosses> dict)
     {
         return dict
             .Select(kv =>
@@ -123,8 +112,6 @@ public class StatisticsService : IStatisticsService
                 var losses = value.Losses;
                 return new TeamPlayerRaceResponse(key.player1, key.race1, key.player2, key.race2, wins, losses, 100 * (double)wins / (losses + wins));
             })
-            .OrderByDescending(r => r.WinRate)
-            .ThenByDescending(r => (r.Losses + r.Wins))
             .ToArray();
     }
 
