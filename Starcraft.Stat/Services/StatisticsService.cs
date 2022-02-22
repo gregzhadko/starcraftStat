@@ -74,25 +74,12 @@ public class StatisticsService : IStatisticsService
         return new StatisticsResponse(playersStat, teamStat, racesStat, gameResponse, playerRaceStat, teamPlayerRace);
     }
 
-    private TeamPlayerRaceResponse[] GetTeamPlayerRaceStat(Dictionary<(string player1, string race1, string player2, string race2), WinLosses> dict)
-    {
-        return dict
-            .Select(kv =>
-            {
-                var (key, value) = kv;
-                var wins = value.Wins;
-                var losses = value.Losses;
-                return new TeamPlayerRaceResponse(key.player1, key.race1, key.player2, key.race2, wins, losses, 100 * (double)wins / (losses + wins));
-            })
-            .OrderByDescending(r => r.WinRate)
-            .ToArray();
-    }
-
     private static PlayerRaceResponse[] GetPlayerRaceStat(Dictionary<(string player, string race), WinLosses> dict)
     {
         return dict
             .Select(kv => new PlayerRaceResponse(kv.Key.player, kv.Key.race, kv.Value.Wins, kv.Value.Losses, 100 * (double)kv.Value.Wins / (kv.Value.Losses + kv.Value.Wins)))
             .OrderByDescending(r => r.WinRate)
+            .ThenByDescending(r => (r.Losses + r.Wins))
             .ToArray();
     }
 
@@ -105,6 +92,7 @@ public class StatisticsService : IStatisticsService
                 return new RacesStatisticsResponse(race1, race2, value.Wins, value.Losses, 100 * (double)value.Wins / (value.Losses + value.Wins));
             })
             .OrderByDescending(r => r.WinRate)
+            .ThenByDescending(r => (r.Losses + r.Wins))
             .ToArray();
     }
 
@@ -113,6 +101,7 @@ public class StatisticsService : IStatisticsService
         return dict
             .Select(kv => new TeamStatisticsResponse(kv.Key.player1, kv.Key.player2, kv.Value.Wins, kv.Value.Losses, 100 * (double)kv.Value.Wins / (kv.Value.Losses + kv.Value.Wins)))
             .OrderByDescending(r => r.Wins)
+            .ThenByDescending(r => (r.Losses + r.Wins))
             .ToArray();
     }
 
@@ -121,6 +110,22 @@ public class StatisticsService : IStatisticsService
         return dict
             .Select(kv => new PlayerStatisticsResponse(kv.Key, kv.Value.Wins, kv.Value.Losses, 100 * (double)kv.Value.Wins / (kv.Value.Losses + kv.Value.Wins)))
             .OrderByDescending(r => r.Wins)
+            .ThenByDescending(r => (r.Losses + r.Wins))
+            .ToArray();
+    }
+
+    private TeamPlayerRaceResponse[] GetTeamPlayerRaceStat(Dictionary<(string player1, string race1, string player2, string race2), WinLosses> dict)
+    {
+        return dict
+            .Select(kv =>
+            {
+                var (key, value) = kv;
+                var wins = value.Wins;
+                var losses = value.Losses;
+                return new TeamPlayerRaceResponse(key.player1, key.race1, key.player2, key.race2, wins, losses, 100 * (double)wins / (losses + wins));
+            })
+            .OrderByDescending(r => r.WinRate)
+            .ThenByDescending(r => (r.Losses + r.Wins))
             .ToArray();
     }
 
