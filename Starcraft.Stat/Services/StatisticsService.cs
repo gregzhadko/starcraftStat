@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Starcraft.Stat.DataBase;
-using Starcraft.Stat.DbModels;
 using Starcraft.Stat.Models;
 using Starcraft.Stat.Models.Responses;
 
