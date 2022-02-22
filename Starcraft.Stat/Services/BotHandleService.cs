@@ -138,7 +138,7 @@ public class BotHandleService : IBotHandleService
 
     private async Task<Message> GetPrettyStatisticsAsync(long chatId)
     {
-        var statistics = await _statisticsService.GetPlayerStatisticsAsync(false);
+        var statistics = await _statisticsService.GetPlayerStatisticsAsync(false, false);
         var result = $"`{statistics.ToPretty()}`";
         return await _botClient.SendTextMessageAsync(chatId, result, ParseMode.MarkdownV2);
     }

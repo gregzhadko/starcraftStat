@@ -3,7 +3,7 @@
 namespace Starcraft.Stat.Models.Responses;
 
 public record StatisticsResponse(PlayerStatisticsResponse[] PlayerStatistics, TeamStatisticsResponse[] TeamStatistics,
-    RacesStatisticsResponse[] RacesStatistics, IReadOnlyCollection<GameResponse> Games, PlayerRaceResponse[] PlayerRaceResponses) : IPretty
+    RacesStatisticsResponse[] RacesStatistics, IReadOnlyCollection<GameResponse> Games, PlayerRaceResponse[] PlayerRaceResponses, TeamPlayerRaceResponse[] TeamPlayerRaceResponses) : IPretty
 {
     private static string Header => "Statistics";
 
@@ -40,6 +40,15 @@ public record StatisticsResponse(PlayerStatisticsResponse[] PlayerStatistics, Te
         foreach (var playerRaceResponse in PlayerRaceResponses)
         {
             result.AppendLine(playerRaceResponse.ToPretty());
+        }
+
+        if (TeamPlayerRaceResponses.Length > 0)
+        {
+            result.AppendLine(TeamPlayerRaceResponse.Header);
+            foreach (var tpr in TeamPlayerRaceResponses)
+            {
+                result.AppendLine(tpr.ToPretty());
+            }
         }
 
         if (Games.Count > 0)
