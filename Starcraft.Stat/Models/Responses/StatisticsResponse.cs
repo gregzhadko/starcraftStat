@@ -44,6 +44,7 @@ public record StatisticsResponse(PlayerStatisticsResponse[] PlayerStatistics, Te
 
         if (TeamPlayerRaceResponses.Length > 0)
         {
+            result.AppendLine();
             result.AppendLine(TeamPlayerRaceResponse.Header);
             foreach (var tpr in TeamPlayerRaceResponses)
             {
@@ -53,6 +54,7 @@ public record StatisticsResponse(PlayerStatisticsResponse[] PlayerStatistics, Te
 
         if (Games.Count > 0)
         {
+            result.AppendLine();
             result.AppendLine($"History (total {Games.Count}):");
             foreach (var game in Games)
             {
