@@ -1,4 +1,6 @@
-﻿namespace Starcraft.Stat.DbModels;
+﻿using Starcraft.Stat.Models;
+
+namespace Starcraft.Stat.DbModels;
 
 public class Team
 {
@@ -13,4 +15,11 @@ public class Team
     public Player Player2 { get; set; } = null!;
     public string Race2Id { get; set; } = null!;
     public Race Race2 { get; set; } = null!;
+
+    public ShortTeam ToShort()
+    {
+        return string.CompareOrdinal(Player1.Name, Player2.Name) > 0 
+            ? new ShortTeam(Player1.Name, Race1Id, Player2.Name, Race2Id) 
+            : new ShortTeam(Player2.Name, Race2Id, Player1.Name, Race1Id);
+    }
 }

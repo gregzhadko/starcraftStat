@@ -46,17 +46,7 @@ public class BotHandleService : IBotHandleService
         _logger.LogInformation("Message {Message} from chat {ChatId}", update.Message.Text, chatId);
         var handler = update.Type switch
         {
-            // UpdateType.Unknown:
-            // UpdateType.ChannelPost:
-            // UpdateType.EditedChannelPost:
-            // UpdateType.ShippingQuery:
-            // UpdateType.PreCheckoutQuery:
-            // UpdateType.Poll:
             UpdateType.Message => BotOnMessageReceived(update.Message),
-            // UpdateType.EditedMessage => BotOnMessageReceived(update.EditedMessage!),
-            // UpdateType.CallbackQuery => BotOnCallbackQueryReceived(update.CallbackQuery!),
-            // UpdateType.InlineQuery => BotOnInlineQueryReceived(update.InlineQuery!),
-            // UpdateType.ChosenInlineResult => BotOnChosenInlineResultReceived(update.ChosenInlineResult!),
             _ => UnknownUpdateHandlerAsync(update)
         };
 
@@ -97,18 +87,26 @@ public class BotHandleService : IBotHandleService
         {
             action = AddGameAsync(message);
         }
-        else
+        else if (command.StartsWith("/help"))
         {
             action = HelpAsync(message);
+        }
+        else
+        {
+            return;
         }
 
         var sentMessage = await action;
         _logger.LogInformation("The message was sent with id: {SentMessageId}", sentMessage.MessageId);
+
+        // Send inline keyboard
+        // You can process responses in BotOnCallbackQueryReceived handler
     }
 
     private async Task<Message> AddGameAsync(Message message)
     {
-        if (!_botConfig.AllowedChats.Contains(message.Chat.Id))
+        var allowedChats = _botConfig.AllowedChats;
+        if (allowedChats.Length > 0 && !allowedChats.Contains(message.Chat.Id))
         {
             _logger.LogWarning("Someone tried to send {Message} from chat {Chat}, but we didn't allowed it", message.Text, message.Chat.Id);
             return await _botClient.SendTextMessageAsync(message.Chat.Id, "Only Grigory and tstk chat can add games to the statistics", ParseMode.Markdown);
@@ -140,7 +138,7 @@ public class BotHandleService : IBotHandleService
 
     private async Task<Message> GetPrettyStatisticsAsync(long chatId)
     {
-        var statistics = await _statisticsService.GetPlayerStatisticsAsync(false);
+        var statistics = await _statisticsService.GetPlayerStatisticsAsync(false, false);
         var result = $"`{statistics.ToPretty()}`";
         return await _botClient.SendTextMessageAsync(chatId, result, ParseMode.MarkdownV2);
     }
@@ -150,6 +148,8 @@ public class BotHandleService : IBotHandleService
         var helpText = $"Usage:\n{string.Join('\n', _commands.Select(x => $"/{x.Key} {x.Value}"))}";
         return await _botClient.SendTextMessageAsync(message.Chat.Id, helpText, replyMarkup: new ReplyKeyboardRemove());
     }
+
+    // Process Inline Keyboard callback data
 
     private Task UnknownUpdateHandlerAsync(Update update)
     {
@@ -168,4 +168,8 @@ public class BotHandleService : IBotHandleService
         _logger.LogInformation("HandleError: {ErrorMessage}", errorMessage);
         await _botClient.SendTextMessageAsync(chatIt, $"Грег наговнокодил: {exception.Message}");
     }
+
+    #region Inline Mode
+
+    #endregion
 }

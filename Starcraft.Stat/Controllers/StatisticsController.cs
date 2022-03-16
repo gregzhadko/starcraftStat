@@ -17,7 +17,7 @@ public class StatisticsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetPlayersStatistics(bool pretty = false, bool showHistory = false)
     {
-        var response = await _service.GetPlayerStatisticsAsync(showHistory);
+        var response = await _service.GetPlayerStatisticsAsync(showHistory, true);
         return Ok(pretty ? response.ToPretty() : response);
     }
 }
