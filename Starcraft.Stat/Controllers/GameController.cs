@@ -23,7 +23,7 @@ public class GameController : ControllerBase
         try
         {
             await _gameService.AddGameAsync(request);
-            var response = await _statisticsService.GetPlayerStatisticsAsync(request.ShowHistory);
+            var response = await _statisticsService.GetPlayerStatisticsAsync(request.ShowHistory, true);
             return Ok(pretty ? response.ToPretty() : response);
         }
         catch
