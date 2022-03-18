@@ -10,6 +10,7 @@ public record StatisticsResponse(PlayerStatisticsResponse[] PlayerStatistics, Te
     public string ToPretty()
     {
         var result = new StringBuilder();
+        result.AppendLine("#StopWar");
         result.AppendLine(Header);
         result.AppendLine();
         result.AppendLine(PlayerStatisticsResponse.Header);
