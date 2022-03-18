@@ -20,10 +20,20 @@
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.3" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
         <PackageReference Include="Telegram.Bot" Version="17.0.0" />
+        <PackageReference Include="Throw" Version="1.2.0" />
     </ItemGroup>
 
     <ItemGroup>
         <Folder Include="Migrations" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="..\docker-compose.yml">
+        <Link>docker-compose.yml</Link>
+      </Content>
+      <Content Include="..\Dockerfile">
+        <Link>Dockerfile</Link>
+      </Content>
     </ItemGroup>
 
 </Project>

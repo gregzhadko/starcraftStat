@@ -68,10 +68,7 @@ Console.WriteLine("Starcraft started");
 
 app.UseHttpsRedirection();
 app.UseRouting();
-//app.UseAuthorization();
 app.UseCors();
-
-//app.MapControllers();
 
 app.UseEndpoints(endpoints =>
 {
