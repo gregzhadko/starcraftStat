@@ -30,8 +30,8 @@ services.AddHttpClient("telegramWebHook")
     .AddTypedClient<ITelegramBotClient>(httpClient
         => new TelegramBotClient(botConfig.BotToken, httpClient));
 
-services.AddDbContext<StarcraftDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("StarcraftDbContext")));
+var connectionString = builder.Configuration.GetConnectionString("StarcraftDbContext");
+services.AddNpgsql<StarcraftDbContext>(connectionString);
 
 services.AddScoped<IBotHandleService, BotHandleService>();
 services.AddScoped<IStatisticsService, StatisticsService>();
