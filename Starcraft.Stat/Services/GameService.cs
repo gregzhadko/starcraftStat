@@ -46,7 +46,7 @@ public class GameService : IGameService
         var player2Id = players.FirstOrDefault(r => r.Name.StartsWith(request.Player2, StringComparison.InvariantCultureIgnoreCase))?.Id;
         player2Id.ThrowIfNull(_ => throw new StarcraftException($"There is no player with '{request.Player2}' name"));
 
-        return new Team
+        return new()
         {
             Player1Id = player1Id.Value,
             Race1Id = race1Id,

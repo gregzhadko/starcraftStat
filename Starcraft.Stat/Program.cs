@@ -1,18 +1,25 @@
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.EntityFrameworkCore;
+using Serilog;
+using Serilog.Events;
 using Starcraft.Stat.DataBase;
 using Starcraft.Stat.Models;
 using Starcraft.Stat.Models.Requests;
 using Starcraft.Stat.Services;
 using Telegram.Bot;
 
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .CreateLogger();
+        
+Log.Information("Starting Web Application");
+
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseSerilog();
 
 var botConfig = builder.Configuration.GetSection("BotConfiguration").Get<BotConfiguration>();
-Console.WriteLine($"Token: {botConfig.BotToken}");
-Console.WriteLine($"Host Address: {botConfig.HostAddress}");
-Console.WriteLine($"AllowedChatsString: {botConfig.AllowedChatsString}");
 
 var services = builder.Services;
 
@@ -50,7 +57,7 @@ services.AddHostedService<MigrationsService>();
 
 var app = builder.Build();
 
-app.UseForwardedHeaders(new ForwardedHeadersOptions
+app.UseForwardedHeaders(new()
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
 });
@@ -64,7 +71,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-Console.WriteLine("Starcraft started");
+Log.Information("Starcraft started");
 
 app.UseHttpsRedirection();
 app.UseRouting();
