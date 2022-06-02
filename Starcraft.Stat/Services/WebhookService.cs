@@ -1,16 +1,17 @@
 ﻿using Starcraft.Stat.Models;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
+using ILogger = Serilog.ILogger;
 
 namespace Starcraft.Stat.Services;
 
 public class WebhookService : IHostedService
 {
     private readonly BotConfiguration _botConfig;
-    private readonly ILogger<WebhookService> _logger;
+    private readonly ILogger _logger;
     private readonly IServiceProvider _services;
 
-    public WebhookService(ILogger<WebhookService> logger, IServiceProvider serviceProvider, IConfiguration configuration)
+    public WebhookService(ILogger logger, IServiceProvider serviceProvider, IConfiguration configuration)
     {
         _logger = logger;
         _services = serviceProvider;
@@ -23,7 +24,7 @@ public class WebhookService : IHostedService
         var botClient = scope.ServiceProvider.GetRequiredService<ITelegramBotClient>();
 
         var webhookAddress = @$"{_botConfig.HostAddress}/bot/{_botConfig.BotToken}";
-        _logger.LogInformation("Setting webhook: {WebhookAddress}", webhookAddress);
+        _logger.Information("Setting webhook: {WebhookAddress}", webhookAddress);
         await botClient.SetWebhookAsync(webhookAddress, allowedUpdates: Array.Empty<UpdateType>(), cancellationToken: cancellationToken);
     }
 
@@ -33,7 +34,7 @@ public class WebhookService : IHostedService
         var botClient = scope.ServiceProvider.GetRequiredService<ITelegramBotClient>();
 
         // Remove webhook upon app shutdown
-        _logger.LogInformation("Removing webhook");
+        _logger.Information("Removing webhook");
         await botClient.DeleteWebhookAsync(cancellationToken: cancellationToken);
     }
 }

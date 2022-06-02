@@ -6,6 +6,7 @@ using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
+using ILogger = Serilog.ILogger;
 
 namespace Starcraft.Stat.Services;
 
@@ -22,10 +23,10 @@ public class BotHandleService : IBotHandleService
     };
 
     private readonly IGameService _gameService;
-    private readonly ILogger<BotHandleService> _logger;
+    private readonly ILogger _logger;
     private readonly IStatisticsService _statisticsService;
 
-    public BotHandleService(ITelegramBotClient botClient, ILogger<BotHandleService> logger, IStatisticsService statisticsService, IGameService gameService, IConfiguration configuration)
+    public BotHandleService(ITelegramBotClient botClient, ILogger logger, IStatisticsService statisticsService, IGameService gameService, IConfiguration configuration)
     {
         _botClient = botClient;
         _logger = logger;
@@ -38,12 +39,12 @@ public class BotHandleService : IBotHandleService
     {
         if (update.Message == null)
         {
-            _logger.LogError("Message is null");
+            _logger.Error("Message is null");
             return;
         }
 
         var chatId = update.Message.Chat.Id;
-        _logger.LogInformation("Message {Message} from chat {ChatId}", update.Message.Text, chatId);
+        _logger.Information("Message {Message} from chat {ChatId}", update.Message.Text, chatId);
         var handler = update.Type switch
         {
             UpdateType.Message => BotOnMessageReceived(update.Message),
@@ -71,7 +72,7 @@ public class BotHandleService : IBotHandleService
 
     private async Task BotOnMessageReceived(Message message)
     {
-        _logger.LogInformation("Receive message type: {MessageType}", message.Type);
+        _logger.Information("Receive message type: {MessageType}", message.Type);
         if (message.Type != MessageType.Text)
         {
             return;
@@ -97,7 +98,7 @@ public class BotHandleService : IBotHandleService
         }
 
         var sentMessage = await action;
-        _logger.LogInformation("The message was sent with id: {SentMessageId}", sentMessage.MessageId);
+        _logger.Information("The message was sent with id: {SentMessageId}", sentMessage.MessageId);
 
         // Send inline keyboard
         // You can process responses in BotOnCallbackQueryReceived handler
@@ -108,7 +109,7 @@ public class BotHandleService : IBotHandleService
         var allowedChats = _botConfig.AllowedChats;
         if (allowedChats.Length > 0 && !allowedChats.Contains(message.Chat.Id))
         {
-            _logger.LogWarning("Someone tried to send {Message} from chat {Chat}, but we didn't allowed it", message.Text, message.Chat.Id);
+            _logger.Warning("Someone tried to send {Message} from chat {Chat}, but we didn't allowed it", message.Text, message.Chat.Id);
             return await _botClient.SendTextMessageAsync(message.Chat.Id, "Only Grigory and tstk chat can add games to the statistics", ParseMode.Markdown);
         }
 
@@ -153,7 +154,7 @@ public class BotHandleService : IBotHandleService
 
     private Task UnknownUpdateHandlerAsync(Update update)
     {
-        _logger.LogInformation("Unknown update type: {UpdateType}", update.Type);
+        _logger.Information("Unknown update type: {UpdateType}", update.Type);
         return Task.CompletedTask;
     }
 
@@ -165,7 +166,7 @@ public class BotHandleService : IBotHandleService
             _ => exception.ToString()
         };
 
-        _logger.LogInformation("HandleError: {ErrorMessage}", errorMessage);
+        _logger.Information("HandleError: {ErrorMessage}", errorMessage);
         await _botClient.SendTextMessageAsync(chatIt, $"Грег наговнокодил: {exception.Message}");
     }
 
