@@ -17,12 +17,12 @@ Log.Logger = new LoggerConfiguration()
 Log.Information("Starting Web Application");
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Host.UseSerilog();
 
 var botConfig = builder.Configuration.GetSection("BotConfiguration").Get<BotConfiguration>();
 
 var services = builder.Services;
 
+services.AddSingleton(Log.Logger);
 services.AddHostedService<WebhookService>();
 
 services.AddHttpClient("telegramWebHook")
