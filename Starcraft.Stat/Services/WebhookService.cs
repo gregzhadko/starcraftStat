@@ -23,7 +23,7 @@ public class WebhookService : IHostedService
         using var scope = _services.CreateScope();
         var botClient = scope.ServiceProvider.GetRequiredService<ITelegramBotClient>();
 
-        var webhookAddress = @$"{_botConfig.HostAddress}/bot/{_botConfig.BotToken}";
+        var webhookAddress = $"{_botConfig.HostAddress}/bot/{_botConfig.BotToken}";
         _logger.Information("Setting webhook: {WebhookAddress}", webhookAddress);
         await botClient.SetWebhookAsync(webhookAddress, allowedUpdates: Array.Empty<UpdateType>(), cancellationToken: cancellationToken);
     }
