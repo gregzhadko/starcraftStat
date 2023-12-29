@@ -4,7 +4,6 @@ using Serilog;
 using Serilog.Events;
 using Starcraft.Stat.DataBase;
 using Starcraft.Stat.Models;
-using Starcraft.Stat.Models.Requests;
 using Starcraft.Stat.Services;
 using Telegram.Bot;
 
@@ -39,8 +38,8 @@ services.AddScoped<IStatisticsService, StatisticsService>();
 services.AddScoped<IGameService, GameService>();
 
 services.AddControllers()
-    .AddNewtonsoftJson()
-    .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<AddGameRequestValidator>());
+    .AddNewtonsoftJson();
+services.AddFluentValidationAutoValidation().AddFluentValidationClientsideAdapters();
 
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();

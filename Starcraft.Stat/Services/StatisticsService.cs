@@ -44,7 +44,7 @@ public class StatisticsService(StarcraftDbContext context) : IStatisticsService
 
             if (showHistory)
             {
-                gameResponse.Add(new GameResponse(game));
+                gameResponse.Add(new(game));
             }
         }
 
@@ -70,7 +70,7 @@ public class StatisticsService(StarcraftDbContext context) : IStatisticsService
                                                               Dictionary<(string race1, string race2), WinLosses> raceDictionary,
                                                               Dictionary<(string player, string race), WinLosses> playerRaceDictionary,
                                                               Dictionary<(string player1, string race1, string player2, string race2), WinLosses> teamPlayerRaceDictionary,
-                                                              List<GameResponse> gameResponse)
+                                                              IReadOnlyCollection<GameResponse> gameResponse)
     {
         var playersStat = playersDictionary
             .Select(kv => new PlayerStatisticsResponse(kv.Key, kv.Value.Wins, kv.Value.Losses, 100 * (double)kv.Value.Wins / (kv.Value.Losses + kv.Value.Wins)))
@@ -94,7 +94,7 @@ public class StatisticsService(StarcraftDbContext context) : IStatisticsService
 
         var teamPlayerRace = GetTeamPlayerRaceStat(teamPlayerRaceDictionary);
 
-        return new StatisticsResponse(playersStat, teamStat, racesStat, gameResponse, playerRaceStat, teamPlayerRace);
+        return new(playersStat, teamStat, racesStat, gameResponse, playerRaceStat, teamPlayerRace);
     }
 
     private static TeamPlayerRaceResponse[] GetTeamPlayerRaceStat(Dictionary<(string player1, string race1, string player2, string race2), WinLosses> dict)
@@ -122,23 +122,23 @@ public class StatisticsService(StarcraftDbContext context) : IStatisticsService
         }
 
         var winValue = (winnerRaces[0], winnerRaces[1]);
-        if (dict.ContainsKey(winValue))
+        if (dict.TryGetValue(winValue, out var value1))
         {
-            dict[winValue].Wins++;
+            value1.Wins++;
         }
         else
         {
-            dict.Add(winValue, new WinLosses(1, 0));
+            dict.Add(winValue, new(1, 0));
         }
 
         var looseValue = (loserRaces[0], loserRaces[1]);
-        if (dict.ContainsKey(looseValue))
+        if (dict.TryGetValue(looseValue, out var value))
         {
-            dict[looseValue].Losses++;
+            value.Losses++;
         }
         else
         {
-            dict.Add(looseValue, new WinLosses(0, 1));
+            dict.Add(looseValue, new(0, 1));
         }
     }
 
@@ -146,7 +146,7 @@ public class StatisticsService(StarcraftDbContext context) : IStatisticsService
     {
         if (!dictionary.ContainsKey(value))
         {
-            dictionary[value] = new WinLosses(0, 0);
+            dictionary[value] = new(0, 0);
         }
 
         if (winner)
@@ -159,15 +159,9 @@ public class StatisticsService(StarcraftDbContext context) : IStatisticsService
         }
     }
 
-    private sealed class WinLosses
+    private sealed class WinLosses(int wins, int losses)
     {
-        public WinLosses(int wins, int losses)
-        {
-            Wins = wins;
-            Losses = losses;
-        }
-
-        public int Wins { get; set; }
-        public int Losses { get; set; }
+        public int Wins { get; set; } = wins;
+        public int Losses { get; set; } = losses;
     }
 }
