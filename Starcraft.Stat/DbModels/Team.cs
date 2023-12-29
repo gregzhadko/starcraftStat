@@ -23,7 +23,7 @@ public class Team
     public ShortTeam ToShort()
     {
         return string.CompareOrdinal(Player1.Name, Player2.Name) > 0 
-            ? new ShortTeam(Player1.Name, Race1Id, Player2.Name, Race2Id) 
+            ? new(Player1.Name, Race1Id, Player2.Name, Race2Id) 
             : new ShortTeam(Player2.Name, Race2Id, Player1.Name, Race1Id);
     }
 }
