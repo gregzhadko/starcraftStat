@@ -1,4 +1,5 @@
-﻿using Starcraft.Stat.Exceptions;
+﻿using Microsoft.Extensions.Options;
+using Starcraft.Stat.Exceptions;
 using Starcraft.Stat.Models;
 using Starcraft.Stat.Models.Requests;
 using Telegram.Bot;
@@ -10,11 +11,11 @@ using ILogger = Serilog.ILogger;
 
 namespace Starcraft.Stat.Services;
 
-public class BotHandleService : IBotHandleService
+public class BotHandleService(ITelegramBotClient botClient, ILogger logger, IStatisticsService statisticsService, IGameService gameService, IOptions<BotConfiguration> botConfiguration)
+    : IBotHandleService
 {
     private const string AddFormat = "winner1 race winner2 race loser1 race loser2 race";
-    private readonly ITelegramBotClient _botClient;
-    private readonly BotConfiguration _botConfig;
+    private readonly BotConfiguration _botConfig = botConfiguration.Value;
 
     private readonly IDictionary<string, string> _commands = new Dictionary<string, string>
     {
@@ -22,29 +23,16 @@ public class BotHandleService : IBotHandleService
         ["addgame"] = $"Add game in format: {AddFormat}"
     };
 
-    private readonly IGameService _gameService;
-    private readonly ILogger _logger;
-    private readonly IStatisticsService _statisticsService;
-
-    public BotHandleService(ITelegramBotClient botClient, ILogger logger, IStatisticsService statisticsService, IGameService gameService, IConfiguration configuration)
-    {
-        _botClient = botClient;
-        _logger = logger;
-        _statisticsService = statisticsService;
-        _gameService = gameService;
-        _botConfig = configuration.GetSection("BotConfiguration").Get<BotConfiguration>();
-    }
-
     public async Task HandleAsync(Update update)
     {
         if (update.Message == null)
         {
-            _logger.Error("Message is null");
+            logger.Error("Message is null");
             return;
         }
 
         var chatId = update.Message.Chat.Id;
-        _logger.Information("Message {Message} from chat {ChatId}", update.Message.Text, chatId);
+        logger.Information("Message {Message} from chat {ChatId}", update.Message.Text, chatId);
         var handler = update.Type switch
         {
             UpdateType.Message => BotOnMessageReceived(update.Message),
@@ -67,12 +55,12 @@ public class BotHandleService : IBotHandleService
 
     private async Task HandleStarcraftExceptionAsync(StarcraftException starcraftException, long chatId)
     {
-        await _botClient.SendTextMessageAsync(chatId, starcraftException.Message, ParseMode.Markdown);
+        await botClient.SendTextMessageAsync(chatId, starcraftException.Message, ParseMode.Markdown);
     }
 
     private async Task BotOnMessageReceived(Message message)
     {
-        _logger.Information("Receive message type: {MessageType}", message.Type);
+        logger.Information("Receive message type: {MessageType}", message.Type);
         if (message.Type != MessageType.Text)
         {
             return;
@@ -98,7 +86,7 @@ public class BotHandleService : IBotHandleService
         }
 
         var sentMessage = await action;
-        _logger.Information("The message was sent with id: {SentMessageId}", sentMessage.MessageId);
+        logger.Information("The message was sent with id: {SentMessageId}", sentMessage.MessageId);
 
         // Send inline keyboard
         // You can process responses in BotOnCallbackQueryReceived handler
@@ -109,14 +97,14 @@ public class BotHandleService : IBotHandleService
         var allowedChats = _botConfig.AllowedChats;
         if (allowedChats.Length > 0 && !allowedChats.Contains(message.Chat.Id))
         {
-            _logger.Warning("Someone tried to send {Message} from chat {Chat}, but we didn't allowed it", message.Text, message.Chat.Id);
-            return await _botClient.SendTextMessageAsync(message.Chat.Id, "Only Grigory and tstk chat can add games to the statistics", ParseMode.Markdown);
+            logger.Warning("Someone tried to send {Message} from chat {Chat}, but we didn't allowed it", message.Text, message.Chat.Id);
+            return await botClient.SendTextMessageAsync(message.Chat.Id, "Only Grigory and tstk chat can add games to the statistics", ParseMode.Markdown);
         }
 
         var s = message.Text!.Split(' ').Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
         if (s.Length < 9)
         {
-            return await _botClient.SendTextMessageAsync(message.Chat.Id, $"Not enough parameters\\. The correct format is `{AddFormat}`", ParseMode.MarkdownV2);
+            return await botClient.SendTextMessageAsync(message.Chat.Id, $"Not enough parameters\\. The correct format is `{AddFormat}`", ParseMode.MarkdownV2);
         }
 
         var request = new AddGameRequest(
@@ -128,33 +116,33 @@ public class BotHandleService : IBotHandleService
         if (!validationResult.IsValid)
         {
             var response = $"Validation errors:\n {string.Join("\n  ", validationResult.Errors.Select(e => e.ErrorMessage))}";
-            return await _botClient.SendTextMessageAsync(message.Chat.Id, response, ParseMode.MarkdownV2);
+            return await botClient.SendTextMessageAsync(message.Chat.Id, response, ParseMode.MarkdownV2);
         }
 
-        await _gameService.AddGameAsync(request);
-        var number = await _gameService.GetGamesCountAsync();
-        await _botClient.SendTextMessageAsync(message.Chat.Id, $"Game №{number} is added", ParseMode.MarkdownV2);
+        await gameService.AddGameAsync(request);
+        var number = await gameService.GetGamesCountAsync();
+        await botClient.SendTextMessageAsync(message.Chat.Id, $"Game №{number} is added", ParseMode.MarkdownV2);
         return await GetPrettyStatisticsAsync(message.Chat.Id);
     }
 
     private async Task<Message> GetPrettyStatisticsAsync(long chatId)
     {
-        var statistics = await _statisticsService.GetPlayerStatisticsAsync(false, false);
+        var statistics = await statisticsService.GetPlayerStatisticsAsync(false, false);
         var result = $"`{statistics.ToPretty()}`";
-        return await _botClient.SendTextMessageAsync(chatId, result, ParseMode.MarkdownV2);
+        return await botClient.SendTextMessageAsync(chatId, result, ParseMode.MarkdownV2);
     }
 
     private async Task<Message> HelpAsync(Message message)
     {
         var helpText = $"Usage:\n{string.Join('\n', _commands.Select(x => $"/{x.Key} {x.Value}"))}";
-        return await _botClient.SendTextMessageAsync(message.Chat.Id, helpText, replyMarkup: new ReplyKeyboardRemove());
+        return await botClient.SendTextMessageAsync(message.Chat.Id, helpText, replyMarkup: new ReplyKeyboardRemove());
     }
 
     // Process Inline Keyboard callback data
 
     private Task UnknownUpdateHandlerAsync(Update update)
     {
-        _logger.Information("Unknown update type: {UpdateType}", update.Type);
+        logger.Information("Unknown update type: {UpdateType}", update.Type);
         return Task.CompletedTask;
     }
 
@@ -166,11 +154,7 @@ public class BotHandleService : IBotHandleService
             _ => exception.ToString()
         };
 
-        _logger.Information("HandleError: {ErrorMessage}", errorMessage);
-        await _botClient.SendTextMessageAsync(chatIt, $"Грег наговнокодил: {exception.Message}");
+        logger.Information("HandleError: {ErrorMessage}", errorMessage);
+        await botClient.SendTextMessageAsync(chatIt, $"Грег наговнокодил: {exception.Message}");
     }
-
-    #region Inline Mode
-
-    #endregion
 }

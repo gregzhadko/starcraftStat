@@ -15,7 +15,7 @@ public class AddGameRequestValidator : AbstractValidator<AddGameRequest>
             .Must(a => a.Distinct().Count() == a.Length)
             .WithMessage("The players names should be unique");
         RuleFor(x => new[] { x.Team1.Player1, x.Team1.Player2, x.Team2.Player1, x.Team2.Player2 })
-            .Must(a => a.All(x => x.Length > 1))
+            .Must(a => Array.TrueForAll(a, x => x.Length > 1))
             .WithMessage("The players names should have at least 2 symbols");
     }
 }

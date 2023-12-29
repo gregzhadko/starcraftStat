@@ -7,7 +7,7 @@ services:
     build: .
     image: gregzhadko/starcraft:latest
     ports:
-      - "5000:80"
+      - "5000:8000"
     depends_on:
       - postgres
     networks:
@@ -23,7 +23,7 @@ services:
     image: postgres:alpine
     restart: always
     environment:
-      POSTGRES_PASSWORD: ${PostgresPasswrod}
+      POSTGRES_PASSWORD: ${PostgresPassword}
     ports:
       - "5432:5432"
     volumes:

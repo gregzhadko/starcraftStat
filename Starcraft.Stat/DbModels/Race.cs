@@ -3,15 +3,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Starcraft.Stat.DbModels;
 
-public class Race
+public class Race(string name)
 {
-    public Race(string name)
-    {
-        Name = name;
-    }
-
     [Key]
-    public string Name { get; set; }
+    [MaxLength(10)]
+    public string Name { get; set; } = name;
 
     [NotMapped]
     public string ShortName => Name[0].ToString();

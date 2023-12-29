@@ -7,22 +7,15 @@ namespace Starcraft.Stat.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class RaceController : ControllerBase
+public class RaceController(StarcraftDbContext context) : ControllerBase
 {
-    private readonly StarcraftDbContext _context;
-
-    public RaceController(StarcraftDbContext context)
-    {
-        _context = context;
-    }
-
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Race>>> GetRace() => await _context.Races.ToListAsync();
+    public async Task<ActionResult<IEnumerable<Race>>> GetRace() => await context.Races.ToListAsync();
 
     [HttpGet("{id}")]
     public async Task<ActionResult<Race>> GetRace(string id)
     {
-        var race = await _context.Races.FindAsync(id);
+        var race = await context.Races.FindAsync(id);
 
         if (race == null)
         {

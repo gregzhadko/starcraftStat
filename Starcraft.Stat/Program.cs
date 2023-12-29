@@ -18,17 +18,20 @@ Log.Information("Starting Web Application");
 
 var builder = WebApplication.CreateBuilder(args);
 
-var botConfig = builder.Configuration.GetSection("BotConfiguration").Get<BotConfiguration>();
+var botConfigurationSection = builder.Configuration.GetSection(nameof(BotConfiguration));
+
+builder.Services.Configure<BotConfiguration>(botConfigurationSection);
 
 var services = builder.Services;
 
 services.AddSingleton(Log.Logger);
 services.AddHostedService<WebhookService>();
 
+var botConfig = botConfigurationSection.Get<BotConfiguration>()!;
 services.AddHttpClient("telegramWebHook")
     .AddTypedClient<ITelegramBotClient>(httpClient => new TelegramBotClient(botConfig.BotToken, httpClient));
 
-var connectionString = builder.Configuration.GetConnectionString("StarcraftDbContext");
+var connectionString = builder.Configuration.GetConnectionString("StarcraftDbContext")!;
 services.AddNpgsql<StarcraftDbContext>(connectionString);
 
 services.AddScoped<IBotHandleService, BotHandleService>();
@@ -64,14 +67,7 @@ app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors();
 
-app.UseEndpoints(endpoints =>
-{
-    var token = botConfig.BotToken;
-    endpoints.MapControllerRoute("telegramWebHook",
-        $"bot/{token}",
-        new { controller = "Webhook", action = "Post" });
-    endpoints.MapControllers();
-});
+app.MapControllerRoute("telegramWebHook", $"bot/{botConfig.BotToken}", new { controller = "Webhook", action = "Post" });
 
 app.MapControllers();
 app.Run();
