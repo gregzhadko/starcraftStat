@@ -3,13 +3,8 @@ using Starcraft.Stat.DbModels;
 
 namespace Starcraft.Stat.DataBase;
 
-public class StarcraftDbContext : DbContext
+public class StarcraftDbContext(DbContextOptions<StarcraftDbContext> options) : DbContext(options)
 {
-    public StarcraftDbContext(DbContextOptions<StarcraftDbContext> options)
-        : base(options)
-    {
-    }
-
     public DbSet<Race> Races { get; set; } = null!;
 
     public DbSet<Player> Players { get; set; } = null!;

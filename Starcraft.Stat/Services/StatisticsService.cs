@@ -6,15 +6,8 @@ using Starcraft.Stat.Models.Responses;
 
 namespace Starcraft.Stat.Services;
 
-public class StatisticsService : IStatisticsService
+public class StatisticsService(StarcraftDbContext context) : IStatisticsService
 {
-    private readonly StarcraftDbContext _context;
-
-    public StatisticsService(StarcraftDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task<StatisticsResponse> GetPlayerStatisticsAsync(bool showHistory, bool showTeamPlayerRaceStatistics)
     {
         var games = await LoadFullGamesAsync();
@@ -60,7 +53,7 @@ public class StatisticsService : IStatisticsService
 
     private Task<Game[]> LoadFullGamesAsync()
     {
-        return _context.Games
+        return context.Games
             .Include(g => g.Team1.Player1)
             .Include(g => g.Team1.Race1)
             .Include(g => g.Team1.Player2)
@@ -74,17 +67,19 @@ public class StatisticsService : IStatisticsService
     }
 
     private static StatisticsResponse BuildStatisticsResponse(Dictionary<string, WinLosses> playersDictionary, Dictionary<(string player1, string player2), WinLosses> teamsDictionary,
-        Dictionary<(string race1, string race2), WinLosses> raceDictionary, Dictionary<(string player, string race), WinLosses> playerRaceDictionary,
-        Dictionary<(string player1, string race1, string player2, string race2), WinLosses> teamPlayerRaceDictionary, List<GameResponse> gameResponse)
+                                                              Dictionary<(string race1, string race2), WinLosses> raceDictionary,
+                                                              Dictionary<(string player, string race), WinLosses> playerRaceDictionary,
+                                                              Dictionary<(string player1, string race1, string player2, string race2), WinLosses> teamPlayerRaceDictionary,
+                                                              List<GameResponse> gameResponse)
     {
         var playersStat = playersDictionary
             .Select(kv => new PlayerStatisticsResponse(kv.Key, kv.Value.Wins, kv.Value.Losses, 100 * (double)kv.Value.Wins / (kv.Value.Losses + kv.Value.Wins)))
             .ToArray();
-        
+
         var teamStat = teamsDictionary
             .Select(kv => new TeamStatisticsResponse(kv.Key.player1, kv.Key.player2, kv.Value.Wins, kv.Value.Losses, 100 * (double)kv.Value.Wins / (kv.Value.Losses + kv.Value.Wins)))
             .ToArray();
-        
+
         var racesStat = raceDictionary
             .Select(kv =>
             {
@@ -92,11 +87,11 @@ public class StatisticsService : IStatisticsService
                 return new RacesStatisticsResponse(race1, race2, value.Wins, value.Losses, 100 * (double)value.Wins / (value.Losses + value.Wins));
             })
             .ToArray();
-        
+
         var playerRaceStat = playerRaceDictionary
             .Select(kv => new PlayerRaceResponse(kv.Key.player, kv.Key.race, kv.Value.Wins, kv.Value.Losses, 100 * (double)kv.Value.Wins / (kv.Value.Losses + kv.Value.Wins)))
             .ToArray();
-        
+
         var teamPlayerRace = GetTeamPlayerRaceStat(teamPlayerRaceDictionary);
 
         return new StatisticsResponse(playersStat, teamStat, racesStat, gameResponse, playerRaceStat, teamPlayerRace);
@@ -164,7 +159,7 @@ public class StatisticsService : IStatisticsService
         }
     }
 
-    private class WinLosses
+    private sealed class WinLosses
     {
         public WinLosses(int wins, int losses)
         {

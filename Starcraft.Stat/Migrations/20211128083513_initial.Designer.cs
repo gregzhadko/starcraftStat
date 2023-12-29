@@ -12,7 +12,7 @@ namespace Starcraft.Stat.Migrations
 {
     [DbContext(typeof(StarcraftDbContext))]
     [Migration("20211128083513_initial")]
-    partial class initial
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

@@ -7,30 +7,23 @@ using Throw;
 
 namespace Starcraft.Stat.Services;
 
-public class GameService : IGameService
+public class GameService(StarcraftDbContext context) : IGameService
 {
-    private readonly StarcraftDbContext _context;
-
-    public GameService(StarcraftDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task AddGameAsync(AddGameRequest request)
     {
-        var races = await _context.Races.ToArrayAsync();
-        var players = await _context.Players.ToArrayAsync();
+        var races = await context.Races.ToArrayAsync();
+        var players = await context.Players.ToArrayAsync();
 
         var team1 = await GetExistingTeamAsync(BuildTeam(request.Team1, races, players));
         var team2 = await GetExistingTeamAsync(BuildTeam(request.Team2, races, players));
 
         var game = new Game
             { Team1 = team1, Team2 = team2, Winner = request.Winner, Date = DateTime.UtcNow };
-        _context.Games.Add(game);
-        await _context.SaveChangesAsync();
+        context.Games.Add(game);
+        await context.SaveChangesAsync();
     }
 
-    public Task<int> GetGamesCountAsync() => _context.Games.CountAsync();
+    public Task<int> GetGamesCountAsync() => context.Games.CountAsync();
 
     private static Team BuildTeam(TeamRequest request, IReadOnlyCollection<Race> races, IReadOnlyCollection<Player> players)
     {
@@ -57,7 +50,7 @@ public class GameService : IGameService
 
     private async Task<Team> GetExistingTeamAsync(Team team)
     {
-        var existingTeam = await _context.Teams.FirstOrDefaultAsync(t =>
+        var existingTeam = await context.Teams.FirstOrDefaultAsync(t =>
             t.Player1Id == team.Player1Id && t.Race1Id == team.Race1Id && t.Player2Id == team.Player2Id &&
             t.Race2Id == team.Race2Id);
         if (existingTeam != null)
@@ -65,7 +58,7 @@ public class GameService : IGameService
             return existingTeam;
         }
 
-        _context.Teams.Add(team);
+        context.Teams.Add(team);
         return team;
     }
 }

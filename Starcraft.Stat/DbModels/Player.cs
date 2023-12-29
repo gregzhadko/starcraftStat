@@ -2,16 +2,11 @@
 
 namespace Starcraft.Stat.DbModels;
 
-public class Player
+public class Player(int id, string name)
 {
-    public Player(int id, string name)
-    {
-        Name = name;
-        Id = id;
-    }
-
     [Key]
-    public int Id { get; set; }
+    public int Id { get; set; } = id;
 
-    public string Name { get; set; }
+    [MaxLength(20)]
+    public string Name { get; set; } = name;
 }

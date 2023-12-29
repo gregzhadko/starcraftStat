@@ -1,4 +1,5 @@
-﻿using Starcraft.Stat.Models;
+﻿using System.ComponentModel.DataAnnotations;
+using Starcraft.Stat.Models;
 
 namespace Starcraft.Stat.DbModels;
 
@@ -8,11 +9,14 @@ public class Team
     public int Player1Id { get; set; }
     public Player Player1 { get; set; } = null!;
 
+    [MaxLength(10)]
     public string Race1Id { get; set; } = null!;
     public Race Race1 { get; set; } = null!;
 
     public int Player2Id { get; set; }
     public Player Player2 { get; set; } = null!;
+    
+    [MaxLength(10)]
     public string Race2Id { get; set; } = null!;
     public Race Race2 { get; set; } = null!;
 
