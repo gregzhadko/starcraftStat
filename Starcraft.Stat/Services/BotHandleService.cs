@@ -128,7 +128,7 @@ public class BotHandleService(ITelegramBotClient botClient, ILogger logger, ISta
     private async Task<Message> GetPrettyStatisticsAsync(long chatId)
     {
         var statistics = await statisticsService.GetPlayerStatisticsAsync(false, false);
-        var result = $"`{statistics.ToPretty()}`";
+        var result = $"`{statistics.ToPretty()}`" + Environment.NewLine + "Test!";
         return await botClient.SendTextMessageAsync(chatId, result, parseMode: ParseMode.MarkdownV2);
     }
 
