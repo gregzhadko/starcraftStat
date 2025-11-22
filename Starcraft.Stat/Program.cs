@@ -1,9 +1,10 @@
-using FluentValidation.AspNetCore;
+using FluentValidation;
 using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
 using Serilog.Events;
 using Starcraft.Stat.DataBase;
 using Starcraft.Stat.Models;
+using Starcraft.Stat.Models.Requests;
 using Starcraft.Stat.Services;
 using Telegram.Bot;
 
@@ -39,7 +40,8 @@ services.AddScoped<IGameService, GameService>();
 
 services.AddControllers()
     .AddNewtonsoftJson();
-services.AddFluentValidationAutoValidation().AddFluentValidationClientsideAdapters();
+
+services.AddValidatorsFromAssemblyContaining<AddGameRequestValidator>();
 
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
