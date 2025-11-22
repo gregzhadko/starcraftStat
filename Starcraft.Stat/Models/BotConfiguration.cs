@@ -2,7 +2,6 @@
 
 public class BotConfiguration
 {
-    private long[]? _allowedChats;
     public string BotToken { get; init; } = null!;
     public string HostAddress { get; init; } = null!;
     public string AllowedChatsString { get; init; } = null!;
@@ -11,17 +10,17 @@ public class BotConfiguration
     {
         get
         {
-            if (_allowedChats != null)
+            if (field != null)
             {
-                return _allowedChats;
+                return field;
             }
 
             if (string.IsNullOrWhiteSpace(AllowedChatsString))
             {
-                return Array.Empty<long>();
+                return [];
             }
 
-            return _allowedChats = AllowedChatsString.Split(',').Select(s => Convert.ToInt64(s)).ToArray();
+            return field = AllowedChatsString.Split(',').Select(s => Convert.ToInt64(s)).ToArray();
         }
     }
 }

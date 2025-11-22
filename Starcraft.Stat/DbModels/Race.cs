@@ -7,7 +7,7 @@ public class Race(string name)
 {
     [Key]
     [MaxLength(10)]
-    public string Name { get; set; } = name;
+    public string Name { get; init; } = name;
 
     [NotMapped]
     public string ShortName => Name[0].ToString();
