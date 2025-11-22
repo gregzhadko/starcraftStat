@@ -4,15 +4,15 @@ namespace Starcraft.Stat.DbModels;
 
 public class Game
 {
-    public int Id { get; set; }
+    public int Id { get; init; }
 
-    public int Team1Id { get; set; }
-    public Team Team1 { get; set; } = null!;
+    public int Team1Id { get; init; }
+    public Team Team1 { get; init; } = null!;
 
-    public int Team2Id { get; set; }
-    public Team Team2 { get; set; } = null!;
+    public int Team2Id { get; init; }
+    public Team Team2 { get; init; } = null!;
 
-    public Winner Winner { get; set; }
+    public Winner Winner { get; init; }
 
-    public DateTime Date { get; set; }
+    public DateTime Date { get; init; }
 }
